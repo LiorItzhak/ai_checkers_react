@@ -1,0 +1,54 @@
+package model.player
+
+import kotlinx.coroutines.*
+import model.Board
+import model.Piece
+import model.game.Checkers.Move
+import model.game.BoardGame
+import kotlin.coroutines.coroutineContext
+
+abstract class Player<T:BoardGame<M,out Board<out Piece>>,M:Move>(val name: String) {
+    lateinit var player: BoardGame.Player
+
+    suspend fun startTurn(game: T): M? {
+        val backupMove = CommittedMove<M>()
+        var move: M? = null
+        //if the turn is cancelled then stop the move calculation and return the backup move
+        try {
+            //start the calculation on another job by do so we enforce the cancellation
+           CoroutineScope(coroutineContext).launch {
+                move = calcMove(game, backupMove)
+            }.join()
+        } catch (cancelE: CancellationException) {
+            //the turn hes been cancelled!
+            //cancel the move calculation - don't wait!, dont let the job delay the turn,
+            // turnJob?.cancel()//dont need - shared context//TODO check this
+        } finally {
+            //if the turn is canceled return the committed backup move
+            return withContext(NonCancellable) {
+                return@withContext move ?: backupMove.take()
+            }
+        }
+    }
+
+    //the player can use CommittedMove to commit a backup move for timeout event
+    protected abstract suspend fun calcMove(game: T, backupMove: CommittedMove<M>): M
+
+
+    class CommittedMove<T:Move> {
+        private var isTaken: Boolean = false
+        private var move: T? = null
+
+        fun commit(move: T): Boolean {
+            val updatable = !isTaken
+            if (updatable)
+                this.move = move
+            return updatable
+        }
+
+        internal fun take(): T? {
+            isTaken = true
+            return move
+        }
+    }
+}

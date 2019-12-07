@@ -1,0 +1,84 @@
+import org.codehaus.groovy.runtime.GStringImpl
+
+buildscript {
+    ext {
+        kotlin_version = '1.3.20'
+        kotlinx_html_version = '0.6.12'
+
+        react_version = '16.6.0'
+        kotlin_react_version = "$react_version-pre.68-kotlin-$kotlin_version" as GStringImpl
+        kotlin_react_dom_version = "$react_version-pre.68-kotlin-$kotlin_version" as GStringImpl
+    }
+}
+
+plugins {
+    id 'kotlin2js' version '1.3.20'
+    id 'org.jetbrains.kotlin.frontend' version '0.0.45'
+}
+
+version '0.0.1'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+    maven { url 'https://dl.bintray.com/kotlinx/kotlinx' }
+    maven { url 'https://dl.bintray.com/kotlin/kotlin-js-wrappers' }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version"
+    compile "org.jetbrains:kotlin-react:$kotlin_react_version"
+    compile "org.jetbrains:kotlin-react-dom:$kotlin_react_dom_version"
+    compile 'org.jetbrains:kotlin-styled:1.0.0-pre.68-kotlin-1.3.20'
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
+
+
+    testCompile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
+
+}
+
+kotlinFrontend {
+    npm {
+        dependency('webpack-cli', 'v2.0.12')
+        dependency('react', react_version)
+        dependency('react-dom', react_version)
+
+        dependency('styled-components', '4')
+        dependency('inline-style-prefixer', '^5.1.0')
+        dependency('kotlinx-coroutines-core', '1.3.2')
+    }
+
+    sourceMaps = true
+
+    webpackBundle {
+        bundleName = 'main'
+        contentPath = file("$projectDir/static")
+        // proxyUrl = 'http://localhost:8080'
+    }
+}
+
+
+
+compileKotlin2Js {
+    kotlinOptions {
+        metaInfo = true
+        outputFile = "${project.buildDir.path}/js/${project.name}.js"
+        sourceMap = true
+        sourceMapEmbedSources = "always"
+        moduleKind = "commonjs"
+        main = "call"
+    }
+
+}
+
+task serverPrepare(type: Copy, dependsOn: ['bundle']) {
+    doFirst { delete "$projectDir/static" }
+    from "$projectDir/build/bundle", "$projectDir/src/main/web"
+    into "$projectDir/static"
+
+    from "$projectDir/src/main/resources"
+    into "$projectDir/static"
+}
+
+build.dependsOn serverPrepare
