@@ -1,4 +1,3 @@
-import org.codehaus.groovy.runtime.GStringImpl
 
 buildscript {
     ext {
@@ -6,8 +5,8 @@ buildscript {
         kotlinx_html_version = '0.6.12'
 
         react_version = '16.6.0'
-        kotlin_react_version = "$react_version-pre.68-kotlin-$kotlin_version" as GStringImpl
-        kotlin_react_dom_version = "$react_version-pre.68-kotlin-$kotlin_version" as GStringImpl
+        kotlin_react_version = "$react_version-pre.68-kotlin-$kotlin_version"
+        kotlin_react_dom_version = "$react_version-pre.68-kotlin-$kotlin_version"
     }
 }
 

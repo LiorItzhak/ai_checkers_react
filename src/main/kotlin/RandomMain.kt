@@ -34,7 +34,7 @@ fun main() {
 
     window.onload = {
         render(document.getElementById("root")!!) {
-            h1 { +"Hello World!2" }
+            h1 { +"Hello World!523" }
             board { board = boardView }
         }
     }
