@@ -2,8 +2,6 @@ package viewmodel
 
 import Utills.MutableObservable
 import kotlinx.coroutines.*
-import kotlinx.css.properties.Time
-import kotlinx.html.TIME
 import model.Piece
 import model.game.BoardGame
 import model.game.Checkers.*
@@ -14,7 +12,6 @@ import model.player.HumanPlayer
 import model.player.Player
 import ui.Board
 import ui.Square
-import kotlin.coroutines.coroutineContext
 
 //todo
 const val URL_REG_PLAYER1 = "img/red-pawn.png"
@@ -60,8 +57,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                         is Queen -> if (piece.owner == BoardGame.Player.Player1) URL_QUEEN_PLAYER1 else URL_QUEEN_PLAYER2
                         else -> null
                     },
-                    colorHtml = if ((row + col) % 2 == 0) BLACK_COLOR else WHITE_COLOR,
-                    isClickable = true//todo
+                    colorHtml = if ((row + col) % 2 == 0) BLACK_COLOR else WHITE_COLOR
             )
         }
 
@@ -69,8 +65,8 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
     }
 
     //todo - for human clicks (clickable squares)
-    private fun isHumanPlayer(player: BoardGame.Player): Boolean {
-        return when (player) {
+    private fun BoardGame.Player.isHuman(): Boolean {
+        return when (this) {
             player1.player -> player1 is HumanPlayer<*, *, *>
             player2.player -> player2 is HumanPlayer<*, *, *>
             else -> false
@@ -139,18 +135,16 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                 console.info("timeout millis =$timeoutMillis")
             }
 
-            override fun onBoardChanged(oldBoard: CheckersBoard?, newBoard: CheckersBoard, move: Move?) {
-                console.info("debug: onBoardChanged")
-            }
 
             override fun onBoardChanged(board: CheckersBoard) {
+                console.info("debug: onBoardChanged")
                 setBoard(board)
             }
 
 
             override suspend fun playMoveAnimation(game: CheckersGame, move: Move) {
                 console.info("play animation $move")
-                if (move is MultiMove) {
+                if (move is MultiMove && game.board[move.moves[0].start]?.owner?.isHuman() == false) {
                     move.moves.forEachIndexed { i, m ->
                         console.info("play animation  part $i - $m")
                         delay(500)

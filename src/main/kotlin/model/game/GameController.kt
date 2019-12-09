@@ -97,7 +97,6 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
 
     interface IGameControllerListener<T : BoardGame<out Move, B>,B : Board<out Piece>> {
-        fun onBoardChanged(oldBoard:B?,newBoard: B,move:Move?)
         fun onBoardChanged(board:B)
 
         fun onMoveDecided(move: Move, board: B)
