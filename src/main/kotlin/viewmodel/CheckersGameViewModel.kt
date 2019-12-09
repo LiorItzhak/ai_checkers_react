@@ -29,8 +29,11 @@ const val COLOR_SELECTED = "#ffefcc"
 class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMove>,
                             private val player2: Player<CheckersGame, CheckersMove>) {
     val board = MutableObservable<Board>()//the observer view is notified when the value changes
+    val timer = MutableObservable<Long>()//the observer view is notified when the value changes
+
     private val game = CheckersGame()
     private val gameController = GameController(player1, player2, game)
+
 
     fun startGame() {
         //start game on different coroutine
@@ -57,7 +60,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                         is Queen -> if (piece.owner == BoardGame.Player.Player1) URL_QUEEN_PLAYER1 else URL_QUEEN_PLAYER2
                         else -> null
                     },
-                    colorHtml = if ((row + col) % 2 == 0) BLACK_COLOR else WHITE_COLOR
+                    colorHtml = if ((row + col) % 2 == 0) WHITE_COLOR  else BLACK_COLOR
             )
         }
 
@@ -131,9 +134,6 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                 console.info("game ended,${if (winner == null) "draw" else "winner is ${winner.name}"}")
             }
 
-            override fun onTimeoutTimerChanged(timeoutMillis: Long) {
-                console.info("timeout millis =$timeoutMillis")
-            }
 
 
             override fun onBoardChanged(board: CheckersBoard) {
@@ -148,13 +148,21 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                     move.moves.forEachIndexed { i, m ->
                         console.info("play animation  part $i - $m")
                         delay(500)
-                        console.info("deleyed play animation  part $i - $m")
+                        console.info("delayed play animation  part $i - $m")
                         game.applyMove(m)
                         console.info("applied play animation  part $i - $m")
                         setBoard(game.board)
                     }
 
                 }
+            }
+
+            override fun onTimeoutTimerStart(timeoutMillis: Long) {
+                console.info("start timeout millis =$timeoutMillis")
+            }
+
+            override fun onTimeoutTimerEnd(timeoutMillis: Long) {
+                console.info("end timeout millis =$timeoutMillis")
             }
 
         })
