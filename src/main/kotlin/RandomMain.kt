@@ -18,7 +18,6 @@ fun main() {
     val player2 = CheckersAiPlayer(AlphaBetaAlgo(5))
     val viewModel = CheckersGameViewModel(player1,player2)
 
-
     window.onload = {
         render(document.getElementById("root")) {
             h1 { +"Hello World!3" }

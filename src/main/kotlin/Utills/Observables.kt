@@ -7,27 +7,21 @@ abstract class Observable<T> {
         protected set(value) {
             isValueInitialized = true
             field = value
-            console.info("4-------------------------------------------------df----------")
-
             notifyObservers()
         }
 
     private val observers = mutableSetOf<Observer<T>>()
 
      fun observe(observer: Observer<T>) {
-         console.info("observe-${observers.size}-----------------------------------------------df----------")
-
          observers.add(observer)
-//        if (isValueInitialized)
-//            observer.onChanged(value!!)
+        if (isValueInitialized)
+            observer.onChanged(value!!)
     }
 
     private fun notifyObservers() {
         //todo - notify on different coroutines
-        console.info("Obs observers size =-${observers.size}-------------------------------df----------")
         if (isValueInitialized)
             observers.forEach {
-                console.info("Obs notify value------------------------------------------------df----------")
                 it.onChanged(value!!)
             }
     }
