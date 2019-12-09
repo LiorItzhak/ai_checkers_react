@@ -1,9 +1,9 @@
 package viewmodel
 
 import Utills.MutableObservable
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.css.properties.Time
+import kotlinx.html.TIME
 import model.Piece
 import model.game.BoardGame
 import model.game.Checkers.*
@@ -79,7 +79,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
 
     init {
         //register to gameController events, change the ui properly
-        gameController.addListener(object : GameController.IGameControllerListener<CheckersBoard> {
+        gameController.addListener(object : GameController.IGameControllerListener<CheckersGame,CheckersBoard> {
             override fun onMoveDecided(move: Move, board: CheckersBoard) {
                 console.info("debug: onMoveDecided")
 
@@ -102,10 +102,6 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                 this@CheckersGameViewModel.board.value = b
             }
 
-            override fun onBoardChanged(board: CheckersBoard) {
-                console.info("debug: onBoardChanged")
-                setBoard(board)
-            }
 
             override fun onTurnStarted(turn: BoardGame.Player) {
                 console.info("turn started : ${turn.name}")
@@ -140,6 +136,35 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
 
             override fun onTimeoutTimerChanged(timeoutMillis: Long) {
                 console.info("timeout millis =$timeoutMillis")
+            }
+
+            override fun onBoardChanged(oldBoard: CheckersBoard?, newBoard: CheckersBoard, move: Move?) {
+                console.info("debug: onBoardChanged")
+            }
+
+            override fun onBoardChanged(board: CheckersBoard) {
+                setBoard(board)
+            }
+
+
+            override suspend fun playMoveAnimation(game: CheckersGame, move: Move) {
+                console.info("play animation $move")
+                if (move is MultiMove) {
+                    move.moves.forEachIndexed {i,m->
+                        console.info("play animation  part $i - $m")
+                        if(i<move.moves.size-1){
+                            delay(2000)
+                            console.info("deleyed play animation  part $i - $m")
+                        }
+                        game.applyMove(m)
+                        console.info("applied play animation  part $i - $m")
+                        withContext(Dispatchers.Main){
+                            setBoard(game.board)
+                        }
+
+                    }
+
+                }
             }
 
         })

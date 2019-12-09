@@ -44,9 +44,6 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
     }
 
     override suspend  fun applyMove(move: CheckersMove, multiMoveDelayMillis: Long?) {
-        if (multiMoveDelayMillis!=null && multiMoveDelayMillis>0)
-            delay(multiMoveDelayMillis)
-
         if (move is SingleMove) {
             if (move.atePos != null)
                 board.remove(move.atePos)
@@ -54,7 +51,7 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
             if (move.end.first==0 || move.end.first == BOARD_SIZE-1)
                 board[move.end] = Queen(board[move.end]!!.owner)
         } else if (move is MultiMove)
-            move.moves.forEach { applyMove(it, 0) }
+            move.moves.forEach { applyMove(it) }
     }
 
     override fun getRandomMove(player: Player): CheckersMove = getAllPossibleMoves(player).random()
