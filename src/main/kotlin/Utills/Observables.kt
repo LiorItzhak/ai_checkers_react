@@ -46,7 +46,6 @@ class MutableObservable<T>() : Observable<T>() {
 
     override var value:T?
     public set(value) {
-        console.info("Obs Set value------------------------------------------------df----------")
         super.value = value
     }
     get() = super.value
@@ -59,7 +58,6 @@ abstract class Observer<T> {
 
 
 inline fun <T> Observable<T>.observeForever(crossinline onChanged: (T) -> Unit) {
-    console.info("observeForever-----------------------------------------------df----------")
     observe(object : Observer<T>() {
         override fun onChanged(value: T) {
             onChanged.invoke(value)

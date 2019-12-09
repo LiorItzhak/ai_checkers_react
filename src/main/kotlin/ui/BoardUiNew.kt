@@ -9,7 +9,12 @@ import styled.styledButton
 import kotlin.browser.window
 
 data class Square(val colorHtml: String, val imageUrl: String? = null,val isClickable : Boolean = false )
-data class Board(val size: Int, val squares: List<List<Square>>)
+data class Board(val size: Int, val squares: List<List<Square>>){
+     operator fun get(row: Int, col: Int): Square? = get(row to col)
+
+     operator fun get(pos: Pair<Int, Int>): Square? = squares[pos.first][pos.second]
+}
+
 fun RBuilder.boardUi(board: ui.Board,onBoardClick : (( Pair<Int, Int>)->Unit)? = null) {
     val squareSize = minOf(window.innerWidth, window.innerHeight).px * 0.9 / board.size
     for (row in 0 until board.size) {
