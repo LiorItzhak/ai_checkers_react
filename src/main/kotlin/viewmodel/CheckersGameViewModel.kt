@@ -80,7 +80,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
 
     init {
         //register to gameController events, change the ui properly
-        gameController.addListener(object : GameController.IGameControllerListener<CheckersGame,CheckersBoard> {
+        gameController.addListener(object : GameController.IGameControllerListener<CheckersGame, CheckersBoard> {
             override fun onMoveDecided(move: Move, board: CheckersBoard) {
                 console.info("debug: onMoveDecided")
 
@@ -151,18 +151,13 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
             override suspend fun playMoveAnimation(game: CheckersGame, move: Move) {
                 console.info("play animation $move")
                 if (move is MultiMove) {
-                    move.moves.forEachIndexed {i,m->
+                    move.moves.forEachIndexed { i, m ->
                         console.info("play animation  part $i - $m")
-                        if(i<=move.moves.size-1){
-                            delay(500)
-                            console.info("deleyed play animation  part $i - $m")
-                        }
+                        delay(500)
+                        console.info("deleyed play animation  part $i - $m")
                         game.applyMove(m)
                         console.info("applied play animation  part $i - $m")
-                        CoroutineScope(coroutineContext).launch(Dispatchers.Main){
-                            setBoard(game.board)
-                        }
-
+                        setBoard(game.board)
                     }
 
                 }
