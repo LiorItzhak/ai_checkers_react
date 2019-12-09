@@ -5,14 +5,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import model.Piece
-import model.algorithm.AlphaBetaAlgo
 import model.game.BoardGame
 import model.game.Checkers.*
 import model.game.Checkers.pieces.Queen
 import model.game.Checkers.pieces.RegularPiece
 import model.game.GameController
-import model.game.IGameController
-import model.player.CheckersAiPlayer
 import model.player.HumanPlayer
 import model.player.Player
 import ui.Board
@@ -86,25 +83,25 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
             override fun onMoveDecided(move: Move, board: CheckersBoard) {
                 console.info("debug: onMoveDecided")
 
-//                when (move) {
-//                    is SingleMove -> {
-//                        boardView.getSquare(move.start.first, move.start.second).color = SquareView.Color.Selected
-//                        boardView.getSquare(move.end.first, move.end.second).color =
-//                                if (board[move.start]!!.owner == BoardGame.Player.Player2)
-//                                    SquareView.Color.Player1Highlight
-//                                else SquareView.Color.Player2Highlight
-//                    }
-//                    is MultiMove -> {
-//                        boardView.getSquare(move.moves[0].start.first, move.moves[0].start.second).color = SquareView.Color.Selected
-//                        move.moves.forEach { m ->
-//                            boardView.getSquare(m.end.first, m.end.second).color =
-//                                    if (board[move.moves[0].start]!!.owner == BoardGame.Player.Player2)
-//                                        SquareView.Color.Player1Highlight
-//                                    else SquareView.Color.Player2Highlight
-//                        }
-//                    }
-//                }
+                val boardT = this@CheckersGameViewModel.board.value ?: return
+                val moveSquares = when (move) {
+                    is SingleMove -> listOf(move.end)
+                    is MultiMove -> move.moves.filterIndexed { inx, _ -> inx > 0 }.map { it.end }
+                    else -> TODO()
+                }
 
+                val squares = boardT.squares.mapIndexed { row, x ->
+                    x.mapIndexed { col, s ->
+                        if (moveSquares.any { it == row to col }) {
+                            val color = when (gameController.getTurn()) {
+                                BoardGame.Player.Player1 -> PLAYER1_HIGHLIGHT_COLOR
+                                BoardGame.Player.Player2 -> PLAYER2_HIGHLIGHT_COLOR
+                            }
+                            s.copy(colorHtml = color)
+                        } else s
+                    }
+                }
+                this@CheckersGameViewModel.board.value = Board(boardT.size, squares)
             }
 
             override fun onBoardChanged(board: CheckersBoard) {
@@ -116,8 +113,16 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                 console.info("turn started : ${turn.name}")
                 val board = board.value ?: return
                 console.info("turn started mark moves: ${turn.name}")
-
+                //if mark clickable tools
                 val possibleMoves = game.getAllPossibleMoves(turn)
+                val allClickableSquares = possibleMoves.flatMap { move ->
+                    when (move) {
+                        is SingleMove -> listOf(move.end, move.start)
+                        is MultiMove -> move.moves.map { it.end }.toMutableList().apply { add(move.moves[0].start) }
+                        else -> TODO()
+                    }
+                }
+
                 val allHighlightSquares = possibleMoves.flatMap { move ->
                     when (move) {
                         is SingleMove -> listOf(move.end)
@@ -125,18 +130,27 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                         else -> TODO()
                     }
                 }
+                val allSelectedSquares = possibleMoves.map { move ->
+                    when (move) {
+                        is SingleMove -> move.start
+                        is MultiMove -> move.moves[0].start
+                        else -> TODO()
+                    }
+                }
 
 
-                val squares = board.squares.mapIndexed { row ,x->
-                    x.mapIndexed { col,s ->
-                        if( allHighlightSquares.any { it == row to col }){
-                            val color = when (turn){
-                                BoardGame.Player.Player1->PLAYER1_HIGHLIGHT_COLOR
-                                BoardGame.Player.Player2->PLAYER2_HIGHLIGHT_COLOR
-
+                val squares = board.squares.mapIndexed { row, x ->
+                    x.mapIndexed { col, s ->
+                        val sq = if (allSelectedSquares.any { it == row to col }) {
+                            s.copy(colorHtml = COLOR_SELECTED)
+                        } else if (  allHighlightSquares.any { it == row to col }) {
+                            val color = when (turn) {
+                                BoardGame.Player.Player1 -> PLAYER1_HIGHLIGHT_COLOR
+                                BoardGame.Player.Player2 -> PLAYER2_HIGHLIGHT_COLOR
                             }
                             s.copy(colorHtml = color)
                         } else s
+                        sq.copy(isClickable = allClickableSquares.any{it == row to col})
                     }
                 }
                 this@CheckersGameViewModel.board.value = Board(board.size, squares)
