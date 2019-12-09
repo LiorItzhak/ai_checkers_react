@@ -10,12 +10,15 @@ import kotlin.js.Date
 
 
 val MULTIMOVE_DELAY = 1000L
+interface IGameController{
+    fun getTurn() : BoardGame.Player
+}
 
 class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
         private val player1: Player<T, M>,
         private val player2: Player<T, M>,
         private val game: T,
-        private val timeLimitMillis: Long? = null) {
+        private val timeLimitMillis: Long? = null) :IGameController  {
     private val listeners = mutableListOf<IGameControllerListener<B>>()
     fun addListener(listener: IGameControllerListener<B>) = listeners.add(listener)
     fun removeListener(listener: IGameControllerListener<B>) = listeners.remove(listener)
@@ -101,5 +104,8 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
         fun onTimeoutTimerChanged(timeoutMillis: Long)
     }
+
+    override fun getTurn(): BoardGame.Player = turn
+
 
 }

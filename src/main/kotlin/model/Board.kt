@@ -19,6 +19,7 @@ abstract class Board<T : Piece>(val size: Int) {
     }
 
     abstract fun copy(): Board<T>
+
 }
 
 

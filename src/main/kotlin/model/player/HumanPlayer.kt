@@ -5,10 +5,8 @@ import model.Board
 import model.Piece
 import model.game.Checkers.Move
 import model.game.BoardGame
-import ui.BoardView
-import ui.View
 
-abstract class HumanPlayer<G:BoardGame<M,out Board<out Piece>>,M:Move,H :HumanPlayer.HumanMove<M>>(name: String): Player<G,M>(name), BoardView.IOnBoardClickedListener {
+abstract class HumanPlayer<G:BoardGame<M,out Board<out Piece>>,M:Move,H :HumanPlayer.HumanMove<M>>(name: String): Player<G,M>(name) {
     private var humanClickChannel: Channel <Pair<Int, Int>>? = null
 
     override suspend fun calcMove(game: G, backupMove: CommittedMove<M>): M {
@@ -27,7 +25,7 @@ abstract class HumanPlayer<G:BoardGame<M,out Board<out Piece>>,M:Move,H :HumanPl
 
     abstract suspend fun humanMove(game:G, clickCoordinate: Pair<Int, Int>, previousPart: H?): H
 
-    final override fun onBoardClicked(view: View, coordinate: Pair<Int, Int>) {
+    fun onBoardClicked(coordinate: Pair<Int, Int>) {
         humanClickChannel?.offer( coordinate)
     }
 

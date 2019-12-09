@@ -34,4 +34,5 @@ abstract class BoardGame<M: Move,B : Board<out Piece>>(open val board: B) {
     }
 
 
+
 }

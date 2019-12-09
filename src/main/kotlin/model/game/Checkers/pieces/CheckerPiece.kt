@@ -5,6 +5,6 @@ import model.Piece
 import model.game.Checkers.SingleMove
 import model.game.BoardGame
 
-abstract class CheckerPiece(val owner: BoardGame.Player): Piece() {
+abstract class CheckerPiece( owner: BoardGame.Player): Piece(owner) {
     abstract fun getPossibleMoves(pos: Pair<Int, Int>, board: Board<CheckerPiece>): List<SingleMove>
 }

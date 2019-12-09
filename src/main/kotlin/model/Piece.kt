@@ -1,3 +1,5 @@
 package model
 
-abstract class Piece
+import model.game.BoardGame
+
+abstract class Piece(val owner: BoardGame.Player)
