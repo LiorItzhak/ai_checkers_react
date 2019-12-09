@@ -14,6 +14,7 @@ import model.player.HumanPlayer
 import model.player.Player
 import ui.Board
 import ui.Square
+import kotlin.coroutines.coroutineContext
 
 //todo
 const val URL_REG_PLAYER1 = "img/red-pawn.png"
@@ -152,13 +153,13 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                 if (move is MultiMove) {
                     move.moves.forEachIndexed {i,m->
                         console.info("play animation  part $i - $m")
-                        if(i<move.moves.size-1){
-                            delay(2000)
+                        if(i<=move.moves.size-1){
+                            delay(500)
                             console.info("deleyed play animation  part $i - $m")
                         }
                         game.applyMove(m)
                         console.info("applied play animation  part $i - $m")
-                        withContext(Dispatchers.Main){
+                        CoroutineScope(coroutineContext).launch(Dispatchers.Main){
                             setBoard(game.board)
                         }
 
