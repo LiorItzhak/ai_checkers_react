@@ -160,7 +160,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                 if (stored.isClickable) s.copy(isClickable = true) else s
             }
         } else {
-            //mark available positions (highlight)
+            //get relevant positions (for highlight)
             var allHighlightSquares = game.getAllPossibleMoves(player).filter {
                 it is MultiMove && when (move.move) {
                     is SingleMove -> it.moves[0] == move.move
@@ -171,7 +171,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
             }.flatMap { m ->
                 when (m) {
                     is SingleMove -> listOf(m.start to m.end)
-                    is MultiMove -> m.moves.filterIndexed { inx, _ -> inx >= 0 }.map { m.moves[0].start to it.end }
+                    is MultiMove -> m.moves.map { m.moves[0].start to it.end }
                     else -> TODO()
                 }
             }
@@ -187,7 +187,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                     } else s
                 }
                 //highlight available moves- moves that start with the selected coordinates
-                allHighlightSquares = allHighlightSquares.filter { it.first == coordinates }
+                allHighlightSquares = allHighlightSquares.filter { it.first == coordinates }//take only moves that uses the picked tool
             } else if (move.move != null) {
                 //human applied move
                 //draw received moves - keep clickable positions
@@ -196,7 +196,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                     if (stored.isClickable) s.copy(isClickable = true) else s
                 }
 
-                //mark available positions (highlight)
+                //take only moves that start with the given moves, than filter parts that already played
                 allHighlightSquares = allHighlightSquares.filter {
                     when (val moveT = move.move) {
                         is SingleMove -> it.first == moveT.start && it.second != moveT.end
