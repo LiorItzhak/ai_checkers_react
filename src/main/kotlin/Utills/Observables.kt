@@ -2,54 +2,54 @@ package Utills
 
 
 abstract class Observable<T> {
-    private var isValueInitialized = false
-    open var value: T? = null
-        protected set(value) {
-            isValueInitialized = true
-            field = value
-            notifyObservers()
-        }
+    private var dataIsSet = false
+
 
     private val observers = mutableSetOf<Observer<T>>()
 
-     fun observe(observer: Observer<T>) {
-         observers.add(observer)
-        if (isValueInitialized)
-            observer.onChanged(value!!)
+    fun observe(observer: Observer<T>) {
+        observers.add(observer)
+        if (dataIsSet)
+            observer.onChanged(data as T)
     }
 
     private fun notifyObservers() {
         //todo - notify on different coroutines
-        if (isValueInitialized)
-            observers.forEach {
-                it.onChanged(value!!)
-            }
+        if (dataIsSet)
+            observers.forEach { it.onChanged(data as T) }
     }
 
-     fun removeObserver(observer: Observer<T>) {
+    fun removeObserver(observer: Observer<T>) {
         observers.remove(observer)
     }
 
-    fun <R> map(mappingFun: (T)->R): Observable<R> {
-        val obs =  object : Observable<R>(){}
-        observeForever {
-            obs.value = mappingFun.invoke(it)
-        }
+    fun <R> map(mappingFun: (T) -> R): Observable<R> {
+        val obs = object : Observable<R>() {}
+        observeForever { obs.value = mappingFun.invoke(it) }
         return obs
     }
+
+
+    private var data: T?=null
+
+    open var value : T
+        get() = data as T
+    protected set(value) {
+        dataIsSet = true
+        this.data = value
+        notifyObservers()
+    }
+
 }
 
 class MutableObservable<T>() : Observable<T>() {
     constructor(initializedValue: T) : this() {
-        value = initializedValue
+        value = (initializedValue)
     }
 
-
-    override var value:T?
-    public set(value) {
-        super.value = value
-    }
-    get() = super.value
+    override var value: T
+        get() = super.value
+        public set(value) {super.value = value}
 }
 
 

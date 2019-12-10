@@ -33,7 +33,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
     : GameController.IGameControllerListener<CheckersGame, CheckersBoard>, HumanPlayer.IHumanPlayerListener<CheckersGame, CheckersMove> {
     val board = MutableObservable<Board>()//the observer view is notified when the value changes
     val timerSec = MutableObservable<Long?>()//the observer view is notified when the value changes
-    private val gameController = GameController(player1, player2, CheckersGame(),timeLimitMillis = 8000).apply { addListener(this@CheckersGameViewModel) }
+    private val gameController = GameController(player1, player2, CheckersGame(),timeLimitMillis = 3000).apply { addListener(this@CheckersGameViewModel) }
 
 
     fun startGame() {
@@ -158,7 +158,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
 
     override fun onTimeoutTimerEnd(timeoutMillis: Long) {
         console.info("end timeout millis =$timeoutMillis")
-        timerSec.value = 0
+        timerSec.value = null
         console.info("----------------end timeout millis =$timeoutMillis")
 
         timerId?.let {  timerId = null ;window.clearInterval(it) }
@@ -193,7 +193,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                 //human have pick up a tool
                 //mark coordinates as selected
                 val coordinates = move.data as Pair<Int, Int>
-                b = board.value!!.mapIndexed { s, row, col ->
+                b = board.value.mapIndexed { s, row, col ->
                     if (row to col == coordinates) {
                         s.copy(colorHtml = COLOR_SELECTED)
                     } else s
@@ -204,7 +204,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                 //human applied move
                 //draw received moves - keep clickable positions
                 b = game.copy().apply { applyMove(move = move.move) }.board.toBoardUi().mapIndexed { s, row, col ->
-                    val stored = board.value?.get(row, col)!!
+                    val stored = board.value[row, col]!!
                     if (stored.isClickable) s.copy(isClickable = true) else s
                 }
 
