@@ -32,9 +32,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
     : GameController.IGameControllerListener<CheckersGame, CheckersBoard>, HumanPlayer.IHumanPlayerListener<CheckersGame, CheckersMove> {
     val board = MutableObservable<Board>()//the observer view is notified when the value changes
     val timer = MutableObservable<Long>()//the observer view is notified when the value changes
-
-    private val game = CheckersGame()
-    private val gameController = GameController(player1, player2, game).apply { addListener(this@CheckersGameViewModel) }
+    private val gameController = GameController(player1, player2, CheckersGame()).apply { addListener(this@CheckersGameViewModel) }
 
 
     fun startGame() {
@@ -96,7 +94,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
     }
 
 
-    override fun onTurnStarted(turn: BoardGame.Player) {
+    override fun onTurnStarted(game: CheckersGame,turn: BoardGame.Player) {
         console.info("turn started : ${turn.name}")
         val board = board.value ?: return
         console.info("turn started mark moves: ${turn.name}")
@@ -112,7 +110,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                 .mapIndexed { it, row, col -> it.copy(isClickable = allClickableSquares.any { it == row to col }) }
     }
 
-    override fun onTurnEnded(turn: BoardGame.Player) {
+    override fun onTurnEnded(game: CheckersGame,turn: BoardGame.Player) {
         console.info("turn ended : ${turn.name}")
         //disable board clicks
         val board = board.value?.map { it.copy(isClickable = false) } ?: return
@@ -247,14 +245,6 @@ inline fun Board.map(crossinline mapping: (Square) -> Square): Board {
     return Board(size, s)
 }
 
-fun Board.reverse(): Board {
-    val s = List(size) { row ->
-        List(size) { col ->
-            (this[size - row - 1, size - col - 1]!!).copy()
-        }
-    }
-    return Board(size, s)
-}
 
 fun CheckersBoard.toBoardUi(): Board {
     val squares = this.mapPieces { piece, row, col ->
@@ -269,21 +259,5 @@ fun CheckersBoard.toBoardUi(): Board {
     }
     return Board(this.size, squares)
 }
-
-//val allHighlightSquares = possibleMoves.flatMap { move ->
-//    when (move) {
-//        is SingleMove -> listOf(move.end)
-//        is MultiMove -> move.moves.filterIndexed { inx, _ -> inx > 0 }.map { it.end }
-//        else -> TODO()
-//    }
-//}
-//val allSelectedSquares = possibleMoves.map { move ->
-//    when (move) {
-//        is SingleMove -> move.start
-//        is MultiMove -> move.moves[0].start
-//        else -> TODO()
-//    }
-//}
-//
 
 

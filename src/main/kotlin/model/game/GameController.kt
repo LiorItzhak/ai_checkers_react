@@ -62,7 +62,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
     private suspend fun idle() {
         while (!game.isGameEnded(turn)) {
             console.info("${currentPlayer.name} : start turn${++turnNum} -${Date().toTimeString()}")
-            listeners.forEach { it.onTurnStarted(currentPlayer.player) }//notify - turn is started
+            listeners.forEach { it.onTurnStarted(game.copy()as T ,currentPlayer.player) }//notify - turn is started
             //TODO pass the player a copy of the game, by do so he will be unable to cheat.
             //if there is a time limit then start the turn with timout
             var move: M? = when (timeLimitMillis) {
@@ -93,7 +93,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
             //toggle turn
             console.info("${currentPlayer.name} : end turn")
-            listeners.forEach { it.onTurnEnded(currentPlayer.player) }//notify - turn is ended
+            listeners.forEach { it.onTurnEnded(game.copy() as T ,currentPlayer.player) }//notify - turn is ended
             currentPlayer = if (currentPlayer == player1) player2 else player1
         }
     }
@@ -104,17 +104,17 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
         fun onMoveDecided(move: Move, board: B)
 
-        fun onTurnStarted(turn: BoardGame.Player)
+        fun onTurnStarted(game: T,turn: BoardGame.Player)
 
-        fun onTurnEnded(turn: BoardGame.Player)
+        fun onTurnEnded(game: T,turn: BoardGame.Player)
 
         fun onScoreChanged(player1Score: Int, player2Score: Int)
 
         fun onGameEnded(winner: BoardGame.Player?, score: Int)
 
         fun onTimeoutTimerStart(timeoutMillis: Long)
-        fun onTimeoutTimerEnd(timeoutMillis: Long)
 
+        fun onTimeoutTimerEnd(timeoutMillis: Long)
 
         suspend fun playMoveAnimation(game: T, move: Move)
 
