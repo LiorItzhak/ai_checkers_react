@@ -15,7 +15,7 @@ data class Board(val size: Int, val squares: List<List<Square>>){
      operator fun get(pos: Pair<Int, Int>): Square? = squares[pos.first][pos.second]
 }
 
-fun RBuilder.boardUi(board: ui.Board,onBoardClick : (( Pair<Int, Int>)->Unit)? = null) {
+fun RBuilder.boardUi(board: Board,onBoardClick : (( Pair<Int, Int>)->Unit)? = null) {
     val squareSize = minOf(window.innerWidth, window.innerHeight).px * 0.9 / board.size
     for (row in 0 until board.size) {
         for (col in 0 until board.size) {

@@ -12,7 +12,7 @@ class BoardGameNode<T: Move>(private val game: BoardGame<T, *>,
     }
 
     private suspend fun getChildForDelta(delta: T): TreeNode<T> {
-        val newGame = game.copy().apply { applyMove(delta, 0) }
+        val newGame = game.copy().apply { applyMove(delta) }
         return BoardGameNode(newGame, owner, oppositePlayer(currentPlayer))
     }
 

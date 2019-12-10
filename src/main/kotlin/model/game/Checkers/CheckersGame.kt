@@ -17,15 +17,12 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
         const val BOARD_SIZE = 8
     }
 
-//    override fun initBoard() {
-//        //TODO clear board before initiating
-//
+//    override fun initBoard() { //
 //        board[1,1] = RegularPiece(Player.Player2)
 //        board[1,3] = RegularPiece(Player.Player2)
 //        board[1,5] = RegularPiece(Player.Player2)
 //        board[2,6] = Queen(Player.Player1)
-//
-//        listeners.forEach { it.onBoardChanged(board.copy()) }
+//        //listeners.forEach { it.onBoardChanged(board.copy()) }
 //    }
 
     override fun copy(): CheckersGame {
@@ -40,10 +37,10 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
             board[line, 2 * i + line % 2] = RegularPiece(Player.Player2)
             board[BOARD_SIZE - 1 - line, 2 * i + (BOARD_SIZE - 1 - line) % 2] = RegularPiece(Player.Player1)
         }
-        listeners.forEach { it.onBoardChanged(board.copy()) }
+      //  listeners.forEach { it.onBoardChanged(board.copy()) }
     }
 
-    override suspend  fun applyMove(move: CheckersMove, multiMoveDelayMillis: Long?) {
+    override  fun applyMove(move: CheckersMove) {
         if (move is SingleMove) {
             if (move.atePos != null)
                 board.remove(move.atePos)

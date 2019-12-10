@@ -9,7 +9,6 @@ import model.player.Player
 import kotlin.js.Date
 
 
-val MULTIMOVE_DELAY = 1000L
 
 interface IGameController {
     fun getTurn(): BoardGame.Player
@@ -88,9 +87,8 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
             move = move ?: game.getRandomMove(turn)
             //apply the turn
             listeners.forEach { it.onMoveDecided(move as Move, game.board.copy() as B) }
-            val multiMoveDelay = if (currentPlayer is HumanPlayer<*, *, *>) null else MULTIMOVE_DELAY
             listeners.forEach { it.playMoveAnimation(game.copy() as T, move) }//notify board has change
-            game.applyMove(move, multiMoveDelay)
+            game.applyMove(move)
             listeners.forEach { it.onBoardChanged(game.board.copy() as B) }//notify board has change
 
             //toggle turn

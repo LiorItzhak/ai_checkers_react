@@ -10,7 +10,7 @@ abstract class BoardGame<M: Move,B : Board<out Piece>>(open val board: B) {
     abstract fun initBoard()
     //throw illegalMoveException if the move is illegal
     //if multiMoveDelay is not null then play the moves with delay between the moves' parts
-    abstract suspend fun applyMove(move: M, multiMoveDelayMillis: Long? = null)
+    abstract  fun applyMove(move: M)
 
     //throw exception if no move available
     abstract fun getRandomMove(player: Player): M
@@ -26,13 +26,13 @@ abstract class BoardGame<M: Move,B : Board<out Piece>>(open val board: B) {
 
     enum class Player { Player1, Player2 }
 
-    protected val listeners = mutableListOf<IGameListener<B>>()
-    fun addListener(listener: IGameListener<B>) = listeners.add(listener)
-    fun removeListener(listener: IGameListener<B>) = listeners.remove(listener)
-    interface IGameListener<B : Board<out Piece>>{
-        fun onBoardChanged(board: B)
-    }
-
+//    protected val listeners = mutableListOf<IGameListener<B>>()
+//    fun addListener(listener: IGameListener<B>) = listeners.add(listener)
+//    fun removeListener(listener: IGameListener<B>) = listeners.remove(listener)
+//    interface IGameListener<B : Board<out Piece>>{
+//        fun onBoardChanged(board: B)
+//    }
+//
 
 
 }

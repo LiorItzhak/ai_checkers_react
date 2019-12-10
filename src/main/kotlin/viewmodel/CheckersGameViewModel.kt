@@ -8,6 +8,7 @@ import model.game.Checkers.*
 import model.game.Checkers.pieces.Queen
 import model.game.Checkers.pieces.RegularPiece
 import model.game.GameController
+import model.player.CheckersHumanPlayer
 import model.player.HumanPlayer
 import model.player.Player
 import ui.Board
@@ -27,12 +28,13 @@ const val COLOR_SELECTED = "#ffefcc"
 
 
 class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMove>,
-                            private val player2: Player<CheckersGame, CheckersMove>) {
+                            private val player2: Player<CheckersGame, CheckersMove>)
+    : GameController.IGameControllerListener<CheckersGame, CheckersBoard>, HumanPlayer.IHumanPlayerListener<CheckersGame, CheckersMove> {
     val board = MutableObservable<Board>()//the observer view is notified when the value changes
     val timer = MutableObservable<Long>()//the observer view is notified when the value changes
 
     private val game = CheckersGame()
-    private val gameController = GameController(player1, player2, game)
+    private val gameController = GameController(player1, player2, game).apply { addListener(this@CheckersGameViewModel) }
 
 
     fun startGame() {
@@ -51,21 +53,6 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
         }
     }
 
-    //get a CheckersBoard and map it for the view
-    fun setBoard(board: CheckersBoard) {
-        val squares = board.mapPieces { piece, row, col ->
-            Square(
-                    imageUrl = when (piece) {
-                        is RegularPiece -> if (piece.owner == BoardGame.Player.Player1) URL_REG_PLAYER1 else URL_REG_PLAYER2
-                        is Queen -> if (piece.owner == BoardGame.Player.Player1) URL_QUEEN_PLAYER1 else URL_QUEEN_PLAYER2
-                        else -> null
-                    },
-                    colorHtml = if ((row + col) % 2 == 0) WHITE_COLOR  else BLACK_COLOR
-            )
-        }
-
-        this.board.value = Board(board.size, squares)
-    }
 
     //todo - for human clicks (clickable squares)
     private fun BoardGame.Player.isHuman(): Boolean {
@@ -79,96 +66,160 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
 
     init {
         //register to gameController events, change the ui properly
-        gameController.addListener(object : GameController.IGameControllerListener<CheckersGame, CheckersBoard> {
-            override fun onMoveDecided(move: Move, board: CheckersBoard) {
-                console.info("debug: onMoveDecided")
+        if (player1 is CheckersHumanPlayer)
+            player1.addListener(this)
+        if (player2 is CheckersHumanPlayer)
+            player2.addListener(this)
+    }
 
-                val boardT = this@CheckersGameViewModel.board.value ?: return
-                val moveSquares = when (move) {
-                    is SingleMove -> listOf(move.end)
-                    is MultiMove -> move.moves.filterIndexed { inx, _ -> inx > 0 }.map { it.end }
+
+    override fun onMoveDecided(move: Move, board: CheckersBoard) {
+        console.info("debug: onMoveDecided")
+
+        val boardT = this@CheckersGameViewModel.board.value ?: return
+        val moveSquares = when (move) {
+            is SingleMove -> listOf(move.end)
+            is MultiMove -> move.moves.filterIndexed { inx, _ -> inx > 0 }.map { it.end }
+            else -> TODO()
+        }
+
+        val b = boardT.mapIndexed { s, row, col ->
+            if (moveSquares.any { it == row to col }) {
+                val color = when (gameController.getTurn()) {
+                    BoardGame.Player.Player1 -> PLAYER1_HIGHLIGHT_COLOR
+                    BoardGame.Player.Player2 -> PLAYER2_HIGHLIGHT_COLOR
+                }
+                s.copy(colorHtml = color)
+            } else s
+        }
+        this@CheckersGameViewModel.board.value = b
+    }
+
+
+    override fun onTurnStarted(turn: BoardGame.Player) {
+        console.info("turn started : ${turn.name}")
+        val board = board.value ?: return
+        console.info("turn started mark moves: ${turn.name}")
+        //enable click on posible moves
+        val allClickableSquares = game.getAllPossibleMoves(turn).flatMap { move ->
+            when (move) {
+                is SingleMove -> listOf(move.end, move.start)
+                is MultiMove -> move.moves.map { it.end }.toMutableList().apply { add(move.moves[0].start) }
+                else -> TODO()
+            }
+        }
+        this@CheckersGameViewModel.board.value = board
+                .mapIndexed { it, row, col -> it.copy(isClickable = allClickableSquares.any { it == row to col }) }
+    }
+
+    override fun onTurnEnded(turn: BoardGame.Player) {
+        console.info("turn ended : ${turn.name}")
+        //disable board clicks
+        val board = board.value?.map { it.copy(isClickable = false) } ?: return
+        this@CheckersGameViewModel.board.value = board
+    }
+
+    override fun onScoreChanged(player1Score: Int, player2Score: Int) {
+        console.info("score updated :player1=$player1Score, player2=$player2Score")
+    }
+
+    override fun onGameEnded(winner: BoardGame.Player?, score: Int) {
+        console.info("game ended,${if (winner == null) "draw" else "winner is ${winner.name}"}")
+    }
+
+    override fun onBoardChanged(board: CheckersBoard) {
+        console.info("debug: onBoardChanged")
+        this@CheckersGameViewModel.board.value = board.toBoardUi()
+    }
+
+    override suspend fun playMoveAnimation(game: CheckersGame, move: Move) {
+        console.info("play animation $move")
+        if (move is MultiMove && game.board[move.moves[0].start]?.owner?.isHuman() == false) {
+            move.moves.forEachIndexed { i, m ->
+                console.info("play animation  part $i - $m")
+                delay(500)
+                console.info("delayed play animation  part $i - $m")
+                game.applyMove(m)
+                console.info("applied play animation  part $i - $m")
+                this@CheckersGameViewModel.board.value = game.board.toBoardUi()
+            }
+        }
+    }
+
+    override fun onTimeoutTimerStart(timeoutMillis: Long) {
+        console.info("start timeout millis =$timeoutMillis")
+    }
+
+    override fun onTimeoutTimerEnd(timeoutMillis: Long) {
+        console.info("end timeout millis =$timeoutMillis")
+    }
+
+    override fun onHumanTakeMove(player: BoardGame.Player, game: CheckersGame, move: HumanPlayer.HumanMove<CheckersMove>) {
+        if (move.move == null && move.data == Unit) {
+            //reset turn - draw original board and make the original squares clickable
+            board.value = game.board.toBoardUi().mapIndexed { s, row, col ->
+                val stored = board.value?.get(row, col)!!
+                if (stored.isClickable) s.copy(isClickable = true) else s
+            }
+        } else {
+            //mark available positions (highlight)
+            var allHighlightSquares = game.getAllPossibleMoves(player).filter {
+                it is MultiMove && when (move.move) {
+                    is SingleMove -> it.moves[0] == move.move
+                    is MultiMove -> it.moves.size >= move.move.moves.size && it.moves.slice(0..move.move.moves.lastIndex) == move.move.moves
+                    null -> true
+                    else -> TODO()
+                } || (it is SingleMove && move.move == null) //single move means that the user a pick up new tool
+            }.flatMap { m ->
+                when (m) {
+                    is SingleMove -> listOf(m.start to m.end)
+                    is MultiMove -> m.moves.filterIndexed { inx, _ -> inx >= 0 }.map { m.moves[0].start to it.end }
                     else -> TODO()
                 }
-
-                val b = boardT.mapIndexed { s, row, col ->
-                    if (moveSquares.any { it == row to col }) {
-                        val color = when (gameController.getTurn()) {
-                            BoardGame.Player.Player1 -> PLAYER1_HIGHLIGHT_COLOR
-                            BoardGame.Player.Player2 -> PLAYER2_HIGHLIGHT_COLOR
-                        }
-                        s.copy(colorHtml = color)
-                    } else s
-                }
-                this@CheckersGameViewModel.board.value = b
             }
 
+            val b: Board
+            if (move.move == null && move.data is Pair<*, *>) {
+                //human have pick up a tool
+                //mark coordinates as selected
+                val coordinates = move.data as Pair<Int, Int>
+                b = board.value!!.mapIndexed { s, row, col ->
+                    if (row to col == coordinates) {
+                        s.copy(colorHtml = COLOR_SELECTED)
+                    } else s
+                }
+                //highlight available moves- moves that start with the selected coordinates
+                allHighlightSquares = allHighlightSquares.filter { it.first == coordinates }
+            } else if (move.move != null) {
+                //human applied move
+                //draw received moves - keep clickable positions
+                b = game.copy().apply { applyMove(move = move.move) }.board.toBoardUi().mapIndexed { s, row, col ->
+                    val stored = board.value?.get(row, col)!!
+                    if (stored.isClickable) s.copy(isClickable = true) else s
+                }
 
-            override fun onTurnStarted(turn: BoardGame.Player) {
-                console.info("turn started : ${turn.name}")
-                val board = board.value ?: return
-                console.info("turn started mark moves: ${turn.name}")
-                //enable click on posible moves
-                val allClickableSquares = game.getAllPossibleMoves(turn).flatMap { move ->
-                    when (move) {
-                        is SingleMove -> listOf(move.end, move.start)
-                        is MultiMove -> move.moves.map { it.end }.toMutableList().apply { add(move.moves[0].start) }
+                //mark available positions (highlight)
+                allHighlightSquares = allHighlightSquares.filter {
+                    when (val moveT = move.move) {
+                        is SingleMove -> it.first == moveT.start && it.second != moveT.end
+                        is MultiMove -> it.first == moveT.moves[0].start && !moveT.moves.map { m -> m.end }.contains(it.second)
                         else -> TODO()
                     }
                 }
-                this@CheckersGameViewModel.board.value = board
-                        .mapIndexed { it, row, col -> it.copy(isClickable = allClickableSquares.any { it == row to col }) }
-            }
+            } else throw RuntimeException("Bug - not suppose to get here 156478")
 
-            override fun onTurnEnded(turn: BoardGame.Player) {
-                console.info("turn ended : ${turn.name}")
-                //disable board clicks
-                val board = board.value?.map { it.copy(isClickable = false) } ?: return
-                this@CheckersGameViewModel.board.value = board
-            }
-
-            override fun onScoreChanged(player1Score: Int, player2Score: Int) {
-                console.info("score updated :player1=$player1Score, player2=$player2Score")
-            }
-
-            override fun onGameEnded(winner: BoardGame.Player?, score: Int) {
-                console.info("game ended,${if (winner == null) "draw" else "winner is ${winner.name}"}")
-            }
-
-
-
-            override fun onBoardChanged(board: CheckersBoard) {
-                console.info("debug: onBoardChanged")
-                setBoard(board)
-            }
-
-
-            override suspend fun playMoveAnimation(game: CheckersGame, move: Move) {
-                console.info("play animation $move")
-                if (move is MultiMove && game.board[move.moves[0].start]?.owner?.isHuman() == false) {
-                    move.moves.forEachIndexed { i, m ->
-                        console.info("play animation  part $i - $m")
-                        delay(500)
-                        console.info("delayed play animation  part $i - $m")
-                        game.applyMove(m)
-                        console.info("applied play animation  part $i - $m")
-                        setBoard(game.board)
+            board.value = b.mapIndexed { s, row, col ->
+                if (allHighlightSquares.any { it.second == row to col }) {
+                    when (player) {
+                        BoardGame.Player.Player1 -> s.copy(colorHtml = PLAYER1_HIGHLIGHT_COLOR)
+                        BoardGame.Player.Player2 -> s.copy(colorHtml = PLAYER2_HIGHLIGHT_COLOR)
                     }
-
-                }
+                } else s
             }
-
-            override fun onTimeoutTimerStart(timeoutMillis: Long) {
-                console.info("start timeout millis =$timeoutMillis")
-            }
-
-            override fun onTimeoutTimerEnd(timeoutMillis: Long) {
-                console.info("end timeout millis =$timeoutMillis")
-            }
-
-        })
-
+        }
     }
 }
+
 
 inline fun <R, T : model.Board<out Piece>> T.mapPieces(crossinline mapping: (Piece?, row: Int, col: Int) -> R): List<List<R>> {
     return List(size) { row ->
@@ -196,6 +247,29 @@ inline fun Board.map(crossinline mapping: (Square) -> Square): Board {
     return Board(size, s)
 }
 
+fun Board.reverse(): Board {
+    val s = List(size) { row ->
+        List(size) { col ->
+            (this[size - row - 1, size - col - 1]!!).copy()
+        }
+    }
+    return Board(size, s)
+}
+
+fun CheckersBoard.toBoardUi(): Board {
+    val squares = this.mapPieces { piece, row, col ->
+        Square(
+                imageUrl = when (piece) {
+                    is RegularPiece -> if (piece.owner == BoardGame.Player.Player1) URL_REG_PLAYER1 else URL_REG_PLAYER2
+                    is Queen -> if (piece.owner == BoardGame.Player.Player1) URL_QUEEN_PLAYER1 else URL_QUEEN_PLAYER2
+                    else -> null
+                },
+                colorHtml = if ((row + col) % 2 == 0) BLACK_COLOR else WHITE_COLOR
+        )
+    }
+    return Board(this.size, squares)
+}
+
 //val allHighlightSquares = possibleMoves.flatMap { move ->
 //    when (move) {
 //        is SingleMove -> listOf(move.end)
@@ -211,3 +285,5 @@ inline fun Board.map(crossinline mapping: (Square) -> Square): Board {
 //    }
 //}
 //
+
+

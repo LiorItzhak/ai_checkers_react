@@ -5,6 +5,9 @@ import model.Board
 import model.Piece
 import model.game.Checkers.Move
 import model.game.BoardGame
+import model.game.Checkers.CheckersGame
+import model.game.Checkers.CheckersMove
+import model.game.GameController
 import kotlin.coroutines.coroutineContext
 
 abstract class Player<T:BoardGame<M,out Board<out Piece>>,M:Move>(val name: String) {
@@ -51,4 +54,13 @@ abstract class Player<T:BoardGame<M,out Board<out Piece>>,M:Move>(val name: Stri
             return move
         }
     }
+
+
+
 }
+
+
+abstract class CheckersPlayer( name: String) : Player<CheckersGame,CheckersMove>(name){
+
+}
+
