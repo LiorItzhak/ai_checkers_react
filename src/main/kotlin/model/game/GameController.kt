@@ -79,12 +79,14 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
                 null -> console.info("${currentPlayer.name} : timeout, generate random move")
                 else -> console.info("${currentPlayer.name} : calculated move : $move")
             }
+            //if no move as given (turn timeout) generate a random move
+            move = move ?: game.getRandomMove(turn)
+
             if (!game.getAllPossibleMoves(turn).any { it == move }) {
                 console.error("${currentPlayer.player} played illegal move :$move, ending game")
                 break
             }
 
-            move = move ?: game.getRandomMove(turn)
             //apply the turn
             listeners.forEach { it.onMoveDecided(move as Move, game.board.copy() as B) }
             listeners.forEach { it.playMoveAnimation(game.copy() as T, move) }//notify board has change

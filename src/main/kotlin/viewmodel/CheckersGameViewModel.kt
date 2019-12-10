@@ -13,6 +13,7 @@ import model.player.HumanPlayer
 import model.player.Player
 import ui.Board
 import ui.Square
+import kotlin.browser.window
 
 //todo
 const val URL_REG_PLAYER1 = "img/red-pawn.png"
@@ -31,8 +32,8 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                             private val player2: Player<CheckersGame, CheckersMove>)
     : GameController.IGameControllerListener<CheckersGame, CheckersBoard>, HumanPlayer.IHumanPlayerListener<CheckersGame, CheckersMove> {
     val board = MutableObservable<Board>()//the observer view is notified when the value changes
-    val timer = MutableObservable<Long>()//the observer view is notified when the value changes
-    private val gameController = GameController(player1, player2, CheckersGame()).apply { addListener(this@CheckersGameViewModel) }
+    val timerSec = MutableObservable<Long?>()//the observer view is notified when the value changes
+    private val gameController = GameController(player1, player2, CheckersGame(),timeLimitMillis = 8000).apply { addListener(this@CheckersGameViewModel) }
 
 
     fun startGame() {
@@ -144,12 +145,23 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
         }
     }
 
+    private var timerId :Int? =null
     override fun onTimeoutTimerStart(timeoutMillis: Long) {
         console.info("start timeout millis =$timeoutMillis")
+        timerId?.let {  timerId = null ;window.clearInterval(it) }
+        timerSec.value = timeoutMillis/1000
+        timerId = window.setInterval(handler = {
+            timerSec.value = (timerSec.value?:0) -1
+            if(timerSec.value?:0<=0)timerId?.let {  timerId = null ;window.clearInterval(it) }
+        } ,timeout = 1000)
     }
 
     override fun onTimeoutTimerEnd(timeoutMillis: Long) {
         console.info("end timeout millis =$timeoutMillis")
+        timerSec.value = 0
+        console.info("----------------end timeout millis =$timeoutMillis")
+
+        timerId?.let {  timerId = null ;window.clearInterval(it) }
     }
 
     override fun onHumanTakeMove(player: BoardGame.Player, game: CheckersGame, move: HumanPlayer.HumanMove<CheckersMove>) {

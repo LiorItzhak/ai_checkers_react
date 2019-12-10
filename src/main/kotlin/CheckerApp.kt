@@ -1,6 +1,5 @@
 import Utills.observeForever
 import react.*
-import react.dom.head
 import react.dom.header
 import ui.Board
 import ui.boardUi
@@ -8,6 +7,7 @@ import viewmodel.CheckersGameViewModel
 
 interface AppState : RState {
     var board: Board?
+    var timerSec:Long?
 }
 
 interface CheckerAppProps : RProps {
@@ -20,8 +20,7 @@ class CheckerApp : RComponent<CheckerAppProps, AppState>() {
         bindToViewModel()
         val viewmodel =props.viewModel
         if (state.board != null){
-
-            header { +"Timer:" }
+            header { +"Timer: ${state.timerSec} sec" }
             boardUi(state.board!!, onBoardClick = {viewmodel.boardClicked(it) })
         }
 
@@ -34,6 +33,10 @@ class CheckerApp : RComponent<CheckerAppProps, AppState>() {
             props.viewModel.board.observeForever {
                 console.info("board setState-")
                 setState { board = it}
+            }
+            props.viewModel.timerSec.observeForever {
+                console.info("----------------timer = $it-------------")
+                setState { timerSec = it }
             }
         }
 

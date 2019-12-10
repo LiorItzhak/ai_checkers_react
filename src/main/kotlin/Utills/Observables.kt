@@ -44,6 +44,7 @@ class MutableObservable<T>() : Observable<T>() {
         value = initializedValue
     }
 
+
     override var value:T?
     public set(value) {
         super.value = value
