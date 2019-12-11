@@ -1,10 +1,12 @@
 package model.algorithm
 
+import kotlinx.coroutines.delay
+
 class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
 
-    val cache = HashMap<TreeNode<T>, Pair<Int,Pair<T, Int>>>()
 
     override suspend fun getBestMove(node: TreeNode<T>): T {
+        i = 1
         val (delta, value) = alphaBeta(node, maxDepth)
         console.log("best move value $value")
         if (delta != null)
@@ -12,14 +14,15 @@ class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
         throw RuntimeException("No move found")
     }
 
+    var i =1
     suspend fun alphaBeta(node: TreeNode<T>, depth: Int,
                                   alpha: Int = Int.MIN_VALUE,
                                   beta: Int = Int.MAX_VALUE,
                                   color: Int = 1): Pair<T?, Int> {
-        if (node in cache) {
-            if (cache[node]!!.first>=depth)
-                return cache[node]!!.second
-        }
+
+        if(i++%10000==0) delay(10)//only for single thread environment - allows context switch
+
+       // console.info("(${i++})")
         if (depth==0)
             return null to color * node.getScore()
 
@@ -34,12 +37,10 @@ class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
                     if (tmp > bestPair.second) {
                         bestPair = delta to tmp
                         if (tmp >= beta) {
-                            cache[node] = depth to (bestPair)
                             return bestPair
                         }
                     }
                 }
-                cache[node] = depth to (bestPair)
                 return bestPair
             }
         }

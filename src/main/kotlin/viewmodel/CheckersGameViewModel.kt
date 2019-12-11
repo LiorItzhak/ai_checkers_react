@@ -11,9 +11,12 @@ import model.game.GameController
 import model.player.CheckersHumanPlayer
 import model.player.HumanPlayer
 import model.player.Player
+import org.w3c.dom.Worker
 import ui.Board
 import ui.Square
 import kotlin.browser.window
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 //todo
 const val URL_REG_PLAYER1 = "img/red-pawn.png"
@@ -33,13 +36,25 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
     : GameController.IGameControllerListener<CheckersGame, CheckersBoard>, HumanPlayer.IHumanPlayerListener<CheckersGame, CheckersMove> {
     val board = MutableObservable<Board>()//the observer view is notified when the value changes
     val timerSec = MutableObservable<Long?>()//the observer view is notified when the value changes
-    private val gameController = GameController(player1, player2, CheckersGame(),timeLimitMillis = null).apply { addListener(this@CheckersGameViewModel) }
+    private val gameController = GameController(player1, player2, CheckersGame(), timeLimitMillis = 5000).apply { addListener(this@CheckersGameViewModel) }
 
 
     fun startGame() {
+//        Worker("worker.js").apply {
+//            onmessage = {  t()}
+//            terminate()
+//
+//
+//        }
+        window.setTimeout(t(),0)
+
         //start game on different coroutine
-        GlobalScope.launch(Dispatchers.Unconfined) {
+    }
+
+    fun t(){
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
             gameController.startNewGame()
+
         }
     }
 
@@ -95,7 +110,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
     }
 
 
-    override fun onTurnStarted(game: CheckersGame,turn: BoardGame.Player) {
+    override fun onTurnStarted(game: CheckersGame, turn: BoardGame.Player) {
         console.info("turn started : ${turn.name}")
         val board = board.value ?: return
         console.info("turn started mark moves: ${turn.name}")
@@ -111,7 +126,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
                 .mapIndexed { it, row, col -> it.copy(isClickable = allClickableSquares.any { it == row to col }) }
     }
 
-    override fun onTurnEnded(game: CheckersGame,turn: BoardGame.Player) {
+    override fun onTurnEnded(game: CheckersGame, turn: BoardGame.Player) {
         console.info("turn ended : ${turn.name}")
         //disable board clicks
         val board = board.value?.map { it.copy(isClickable = false) } ?: return
@@ -145,21 +160,21 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
         }
     }
 
-    private var timerId :Int? =null
+    private var timerId: Int? = null
     override fun onTimeoutTimerStart(timeoutMillis: Long) {
         console.info("start timeout millis =$timeoutMillis")
-        timerId?.let {  timerId = null ;window.clearInterval(it) }
-        timerSec.value = timeoutMillis/1000
+        timerId?.let { timerId = null;window.clearInterval(it) }
+        timerSec.value = timeoutMillis / 1000
         timerId = window.setInterval(handler = {
-            timerSec.value = (timerSec.value?:0) -1
-            if(timerSec.value?:0<=0)timerId?.let {  timerId = null ;window.clearInterval(it);timerSec.value =0 }
-        } ,timeout = 1000)
+            timerSec.value = (timerSec.value ?: 0) - 1
+            if (timerSec.value ?: 0 <= 0) timerId?.let { timerId = null;window.clearInterval(it);timerSec.value = 0 }
+        }, timeout = 1000)
     }
 
     override fun onTimeoutTimerEnd(timeoutMillis: Long) {
         console.info("end timeout millis =$timeoutMillis")
         timerSec.value = null
-        timerId?.let {  timerId = null ;window.clearInterval(it) }
+        timerId?.let { timerId = null;window.clearInterval(it) }
     }
 
     override fun onHumanTakeMove(player: BoardGame.Player, game: CheckersGame, move: HumanPlayer.HumanMove<CheckersMove>) {

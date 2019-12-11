@@ -6,8 +6,8 @@ import model.Piece
 import model.game.Checkers.Move
 import model.player.HumanPlayer
 import model.player.Player
+import kotlin.browser.window
 import kotlin.js.Date
-
 
 
 interface IGameController {
@@ -32,6 +32,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
     suspend fun startNewGame() {
         console.info("Start new game")
         initGame()
+        delay(1000)
         idle()
         endGame()
     }
@@ -51,7 +52,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
         val player1Score = game.getScore(player1.player)
         val player2Score = game.getScore(player2.player)
         val winner = when (game.isGameEnded(turn)) {
-            true -> if (player1Score > player2Score) player2.player else if (player1Score < player2Score) player2.player else null
+            true -> if (player1Score > player2Score) player1.player else if (player1Score < player2Score) player2.player else null
             else -> null
         }
         listeners.forEach { it.onGameEnded(winner, game.getScore(winner ?: player1.player)) }
@@ -60,11 +61,11 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
     //game loop
     private suspend fun idle() {
-        while (!game.isGameEnded(turn)) {
+        do {
             turnNum++
             val startTime = Date()
             console.info("${currentPlayer.name} : start turn${turnNum} -${startTime.toTimeString()}")
-            listeners.forEach { it.onTurnStarted(game.copy()as T ,currentPlayer.player) }//notify - turn is started
+            listeners.forEach { it.onTurnStarted(game.copy() as T, currentPlayer.player) }//notify - turn is started
             //TODO pass the player a copy of the game, by do so he will be unable to cheat.
             //if there is a time limit then start the turn with timout
             var move: M? = when (timeLimitMillis) {
@@ -97,13 +98,14 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
             //toggle turn
             val endTime = Date()
-            console.info("${currentPlayer.name} : end turn${turnNum} -${endTime.toTimeString()} ---- ${(endTime.getSeconds()- startTime.getSeconds())} sec ")
+            console.info("${currentPlayer.name} : end turn${turnNum} -${endTime.toTimeString()} ---- ${(endTime - startTime).toTimeString()}  ")
             console.info("${currentPlayer.name} : end turn")
-            listeners.forEach { it.onTurnEnded(game.copy() as T ,currentPlayer.player) }//notify - turn is ended
-            currentPlayer = if (currentPlayer == player1) player2 else player1
-
+            listeners.forEach { it.onTurnEnded(game.copy() as T, currentPlayer.player) }//notify - turn is ended
             delay(500)
-        }
+            currentPlayer = if (currentPlayer == player1) player2 else player1
+        } while (!game.isGameEnded(currentPlayer.player))
+
+
     }
 
 
@@ -112,9 +114,9 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
         fun onMoveDecided(move: Move, board: B)
 
-        fun onTurnStarted(game: T,turn: BoardGame.Player)
+        fun onTurnStarted(game: T, turn: BoardGame.Player)
 
-        fun onTurnEnded(game: T,turn: BoardGame.Player)
+        fun onTurnEnded(game: T, turn: BoardGame.Player)
 
         fun onScoreChanged(player1Score: Int, player2Score: Int)
 
@@ -132,3 +134,14 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
 
 }
+
+private operator fun Date.minus(startTime: Date) = Date(
+        year = this.getFullYear() - startTime.getFullYear(),
+        month = this.getMonth() - startTime.getMonth(),
+        day = this.getDay() - startTime.getDay(),
+        hour = this.getHours() - startTime.getHours(),
+        minute = this.getMinutes() - startTime.getMinutes(),
+        second = this.getSeconds() - startTime.getSeconds(),
+        millisecond = this.getMilliseconds() - startTime.getMilliseconds()
+
+)

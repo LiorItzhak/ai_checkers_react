@@ -15,8 +15,8 @@ import viewmodel.CheckersGameViewModel
 import kotlin.browser.document
 import kotlin.browser.window
 fun main() {
-    val player1 = CheckersMctsAiPlayer()//CheckersAiPlayer(AlphaBetaAlgo(10))//CheckersMctsAiPlayer()
-    val player2 = CheckersAiPlayer(AlphaBetaAlgo(5))
+    val player1 = CheckersMctsAiPlayer()//CheckersAiPlayer(AlphaBetaAlgo(10))//CheckersMctsAiPlayer()CheckersHumanPlayer
+    val player2 = CheckersAiPlayer(AlphaBetaAlgo(14))
     val viewModel = CheckersGameViewModel(player1,player2)
 
     window.onload = {
@@ -24,9 +24,8 @@ fun main() {
             h1 { +"Hello World!3" }
             checkerApp { this.viewModel = viewModel }
         }
-        viewModel.startGame()
-
     }
+    viewModel.startGame()
 }
 
 

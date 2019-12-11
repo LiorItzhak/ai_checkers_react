@@ -33,12 +33,12 @@ class CheckersAiPlayer(val algo: GameTreeAlgo<CheckersMove>) : AiPlayer<Checkers
 }
 
 
-class CheckersMctsAiPlayer() : AiPlayer<CheckersGame, CheckersMove>("MCTS Player") {
+class CheckersMctsAiPlayer : AiPlayer<CheckersGame, CheckersMove>("MCTS Player") {
 
     override suspend fun calcMove(game: CheckersGame, backupMove: CommittedMove<CheckersMove>): CheckersMove {
         val mcts = MonteCarloTreeSearch<CheckersStaticState>()
         val rootState = CheckersStaticState(game, player)
-        return mcts.search(rootState,maxIterations = 5000, maxDepth = 10).move!!
+        return mcts.search(rootState,maxIterations = 5000, maxDepth = 20){ backupMove.commit(it.move!!) }.move!!
     }
 
     class CheckersStaticState(val game: CheckersGame, val player: BoardGame.Player, val move: CheckersMove? = null) : StaticState {
@@ -50,7 +50,7 @@ class CheckersMctsAiPlayer() : AiPlayer<CheckersGame, CheckersMove>("MCTS Player
         override val isTerminal: Boolean
             get() = children.isEmpty()
 
-        override fun evaluate(): Double = game.getScore(player) - game.getScore(opponent).toDouble()
+        override fun evaluate(): Double = game.getScore(player).toDouble()
 
         override fun getChildren(): List<StaticState> = children
 
