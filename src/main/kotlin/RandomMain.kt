@@ -8,13 +8,14 @@ import model.game.GameController
 import model.game.BoardGame
 import model.player.CheckersAiPlayer
 import model.player.CheckersHumanPlayer
+import model.player.CheckersMctsAiPlayer
 import react.dom.*
 import viewmodel.CheckersGameViewModel
 
 import kotlin.browser.document
 import kotlin.browser.window
 fun main() {
-    val player1 = CheckersHumanPlayer()
+    val player1 = CheckersMctsAiPlayer()//CheckersAiPlayer(AlphaBetaAlgo(10))//CheckersMctsAiPlayer()
     val player2 = CheckersAiPlayer(AlphaBetaAlgo(5))
     val viewModel = CheckersGameViewModel(player1,player2)
 
@@ -26,10 +27,6 @@ fun main() {
         viewModel.startGame()
 
     }
-
-
-
-
 }
 
 

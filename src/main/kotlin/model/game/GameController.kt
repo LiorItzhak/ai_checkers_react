@@ -61,7 +61,9 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
     //game loop
     private suspend fun idle() {
         while (!game.isGameEnded(turn)) {
-            console.info("${currentPlayer.name} : start turn${++turnNum} -${Date().toTimeString()}")
+            turnNum++
+            val startTime = Date()
+            console.info("${currentPlayer.name} : start turn${turnNum} -${startTime.toTimeString()}")
             listeners.forEach { it.onTurnStarted(game.copy()as T ,currentPlayer.player) }//notify - turn is started
             //TODO pass the player a copy of the game, by do so he will be unable to cheat.
             //if there is a time limit then start the turn with timout
@@ -94,9 +96,13 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
             listeners.forEach { it.onBoardChanged(game.board.copy() as B) }//notify board has change
 
             //toggle turn
+            val endTime = Date()
+            console.info("${currentPlayer.name} : end turn${turnNum} -${endTime.toTimeString()} ---- ${(endTime.getSeconds()- startTime.getSeconds())} sec ")
             console.info("${currentPlayer.name} : end turn")
             listeners.forEach { it.onTurnEnded(game.copy() as T ,currentPlayer.player) }//notify - turn is ended
             currentPlayer = if (currentPlayer == player1) player2 else player1
+
+            delay(500)
         }
     }
 

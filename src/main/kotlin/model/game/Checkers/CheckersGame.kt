@@ -17,13 +17,6 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
         const val BOARD_SIZE = 8
     }
 
-//    override fun initBoard() { //
-//        board[1,1] = RegularPiece(Player.Player2)
-//        board[1,3] = RegularPiece(Player.Player2)
-//        board[1,5] = RegularPiece(Player.Player2)
-//        board[2,6] = Queen(Player.Player1)
-//        //listeners.forEach { it.onBoardChanged(board.copy()) }
-//    }
 
     override fun copy(): CheckersGame {
         return CheckersGame().also {
@@ -33,22 +26,37 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
 
     override fun initBoard() {
         //TODO clear board before initiating
-        cartesianFor(BOARD_SIZE / 2 - 1, (BOARD_SIZE+1) / 2) { line, i ->
+        cartesianFor(BOARD_SIZE / 2 - 1, (BOARD_SIZE + 1) / 2) { line, i ->
             board[line, 2 * i + line % 2] = RegularPiece(Player.Player2)
             board[BOARD_SIZE - 1 - line, 2 * i + (BOARD_SIZE - 1 - line) % 2] = RegularPiece(Player.Player1)
         }
-      //  listeners.forEach { it.onBoardChanged(board.copy()) }
+        //  listeners.forEach { it.onBoardChanged(board.copy()) }
     }
 
-    override  fun applyMove(move: CheckersMove) {
-        if (move is SingleMove) {
+    override fun applyMove(move: CheckersMove) {
+        fun doMove(move: SingleMove) {
             if (move.atePos != null)
                 board.remove(move.atePos)
             board[move.end] = board.remove(move.start)!!
-            if (move.end.first==0 || move.end.first == BOARD_SIZE-1)
-                board[move.end] = Queen(board[move.end]!!.owner)
-        } else if (move is MultiMove)
-            move.moves.forEach { applyMove(it) }
+        }
+        val finalPos: Pair<Int, Int>
+        val owner: Player
+        when (move) {
+            is SingleMove -> {
+                finalPos = move.end
+                owner = board[move.start]?.owner!!
+                doMove(move)
+            }
+            is MultiMove -> {
+                finalPos = move.moves.last().end
+                owner = board[move.moves.first().start]?.owner!!
+                move.moves.forEach { doMove(it) }
+            }
+            else -> {TODO()}
+        }
+        if ((finalPos.first == 0 && owner == Player.Player1)
+                || (finalPos.first == BOARD_SIZE - 1 && owner == Player.Player2))
+            board[finalPos] = Queen(owner)
     }
 
     override fun getRandomMove(player: Player): CheckersMove = getAllPossibleMoves(player).random()
