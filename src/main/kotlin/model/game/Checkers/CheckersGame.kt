@@ -17,13 +17,6 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
         const val BOARD_SIZE = 8
     }
 
-//    override fun initBoard() { //
-//        board[1,1] = RegularPiece(Player.Player2)
-//        board[1,3] = RegularPiece(Player.Player2)
-//        board[1,5] = RegularPiece(Player.Player2)
-//        board[2,6] = Queen(Player.Player1)
-//        //listeners.forEach { it.onBoardChanged(board.copy()) }
-//    }
 
     override fun copy(): CheckersGame {
         return CheckersGame().also {
@@ -45,10 +38,15 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
             if (move.atePos != null)
                 board.remove(move.atePos)
             board[move.end] = board.remove(move.start)!!
-            if (move.end.first==0 || move.end.first == BOARD_SIZE-1)
-                board[move.end] = Queen(board[move.end]!!.owner)
-        } else if (move is MultiMove)
+        } else if (move is MultiMove) {
+            val finalPos = move.moves.last().end
+            val owner = board[move.moves.first().start]?.owner
             move.moves.forEach { applyMove(it) }
+
+            if ((finalPos.first == 0 && owner==Player.Player2)
+                    || (finalPos.first == BOARD_SIZE-1 && owner==Player.Player1))
+                board[finalPos] = Queen(owner)
+        }
     }
 
     override fun getRandomMove(player: Player): CheckersMove = getAllPossibleMoves(player).random()

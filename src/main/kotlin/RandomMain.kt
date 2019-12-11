@@ -26,10 +26,6 @@ fun main() {
         viewModel.startGame()
 
     }
-
-
-
-
 }
 
 
