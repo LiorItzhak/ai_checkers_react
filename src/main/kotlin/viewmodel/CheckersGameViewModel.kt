@@ -33,12 +33,12 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
     : GameController.IGameControllerListener<CheckersGame, CheckersBoard>, HumanPlayer.IHumanPlayerListener<CheckersGame, CheckersMove> {
     val board = MutableObservable<Board>()//the observer view is notified when the value changes
     val timerSec = MutableObservable<Long?>()//the observer view is notified when the value changes
-    private val gameController = GameController(player1, player2, CheckersGame(),timeLimitMillis = 3000).apply { addListener(this@CheckersGameViewModel) }
+    private val gameController = GameController(player1, player2, CheckersGame(),timeLimitMillis = 1000).apply { addListener(this@CheckersGameViewModel) }
 
 
     fun startGame() {
         //start game on different coroutine
-        GlobalScope.launch(Dispatchers.Default) {
+        GlobalScope.launch(Dispatchers.Unconfined) {
             gameController.startNewGame()
         }
     }
@@ -152,15 +152,13 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
         timerSec.value = timeoutMillis/1000
         timerId = window.setInterval(handler = {
             timerSec.value = (timerSec.value?:0) -1
-            if(timerSec.value?:0<=0)timerId?.let {  timerId = null ;window.clearInterval(it) }
+            if(timerSec.value?:0<=0)timerId?.let {  timerId = null ;window.clearInterval(it);timerSec.value =0 }
         } ,timeout = 1000)
     }
 
     override fun onTimeoutTimerEnd(timeoutMillis: Long) {
         console.info("end timeout millis =$timeoutMillis")
         timerSec.value = null
-        console.info("----------------end timeout millis =$timeoutMillis")
-
         timerId?.let {  timerId = null ;window.clearInterval(it) }
     }
 
@@ -168,7 +166,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
         if (move.move == null && move.data == Unit) {
             //reset turn - draw original board and make the original squares clickable
             board.value = game.board.toBoardUi().mapIndexed { s, row, col ->
-                val stored = board.value?.get(row, col)!!
+                val stored = board.value[row, col]!!
                 if (stored.isClickable) s.copy(isClickable = true) else s
             }
         } else {
