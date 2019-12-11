@@ -1,6 +1,9 @@
 package model.algorithm
 
 class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
+
+    val cache = HashMap<TreeNode<T>, Pair<Int,Pair<T, Int>>>()
+
     override suspend fun getBestMove(node: TreeNode<T>): T {
         val (delta, value) = alphaBeta(node, maxDepth)
         console.log("best move value $value")
@@ -13,6 +16,10 @@ class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
                                   alpha: Int = Int.MIN_VALUE,
                                   beta: Int = Int.MAX_VALUE,
                                   color: Int = 1): Pair<T?, Int> {
+        if (node in cache) {
+            if (cache[node]!!.first>=depth)
+                return cache[node]!!.second
+        }
         if (depth==0)
             return null to color * node.getScore()
 
@@ -26,10 +33,13 @@ class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
                     val tmp = -alphaBeta(child, depth-1, -beta, -bestPair.second, -color).second
                     if (tmp > bestPair.second) {
                         bestPair = delta to tmp
-                        if (tmp >= beta)
+                        if (tmp >= beta) {
+                            cache[node] = depth to (bestPair)
                             return bestPair
+                        }
                     }
                 }
+                cache[node] = depth to (bestPair)
                 return bestPair
             }
         }

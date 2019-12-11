@@ -3,9 +3,9 @@ package model.algorithm
 import model.game.BoardGame
 import model.game.Checkers.Move
 
-class BoardGameNode<T: Move>(private val game: BoardGame<T, *>,
-                             private val owner: BoardGame.Player,
-                             private val currentPlayer: BoardGame.Player = owner): TreeNode<T> {
+data class BoardGameNode<T: Move>(private val game: BoardGame<T, *>,
+                                  private val owner: BoardGame.Player,
+                                  private val currentPlayer: BoardGame.Player = owner): TreeNode<T> {
     companion object {
         private fun oppositePlayer(player: BoardGame.Player) =
                 if(player==BoardGame.Player.Player1) BoardGame.Player.Player2 else BoardGame.Player.Player1
