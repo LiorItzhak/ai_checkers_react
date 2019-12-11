@@ -20,7 +20,7 @@ class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
                                   beta: Int = Int.MAX_VALUE,
                                   color: Int = 1): Pair<T?, Int> {
 
-        if(i++%10000==0) delay(10)//only for single thread environment - allows context switch
+        if(i++%5000==0) delay(1)//only for single thread environment - allows context switch
 
        // console.info("(${i++})")
         if (depth==0)

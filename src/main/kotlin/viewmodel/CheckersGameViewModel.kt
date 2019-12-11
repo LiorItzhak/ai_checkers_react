@@ -36,7 +36,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
     : GameController.IGameControllerListener<CheckersGame, CheckersBoard>, HumanPlayer.IHumanPlayerListener<CheckersGame, CheckersMove> {
     val board = MutableObservable<Board>()//the observer view is notified when the value changes
     val timerSec = MutableObservable<Long?>()//the observer view is notified when the value changes
-    private val gameController = GameController(player1, player2, CheckersGame(), timeLimitMillis = 5000).apply { addListener(this@CheckersGameViewModel) }
+    private val gameController = GameController(player1, player2, CheckersGame(), timeLimitMillis = 10000).apply { addListener(this@CheckersGameViewModel) }
 
 
     fun startGame() {
