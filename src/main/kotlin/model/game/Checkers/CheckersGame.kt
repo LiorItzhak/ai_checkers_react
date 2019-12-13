@@ -117,8 +117,8 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
             }
         }
         return when {
-            score1 == 0 -> Int.MIN_VALUE
-            score2 == 0 -> Int.MAX_VALUE
+            score1 == 0 -> -50
+            score2 == 0 ->  50
             else -> score1 - score2
         }
     }
