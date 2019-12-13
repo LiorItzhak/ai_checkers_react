@@ -19,7 +19,7 @@ class MonteCarloTreeSearch<T : StaticState> {
                     onChooseChanged?.invoke(it.state as T)
                 }
             }
-            if(i%200==0) delay(1)//only for single threaded environments - allows context switch
+            if(i%150==0) {delay(1);console.info("alpha $i")}//only for single threaded environments - allows context switch
         }
         return rootNode.children?.maxBy { it.numOfVisits }!!.state as T
     }
@@ -85,14 +85,16 @@ class Node(val state: StaticState, val parent: Node? = null) {
             endState = endState.getChildren().random()
         }
 
-        weight += if (state.perspective == endState.perspective) endState.evaluate() else -endState.evaluate()
+        weight +=endState.evaluate(/*parent!!.state.perspective*/)
         numOfVisits++
     }
 
     fun backpropagation() {
-        var ancestor = this.parent
+        var ancestor = parent
+        //val weightCache = mutableMapOf((parent?.state?.perspective?:Int.MIN_VALUE) to weight)
         while (ancestor != null) {
             ancestor.numOfVisits++
+            //weightCache.get(ancestor.state.perspective)?:
             ancestor.weight += if (state.perspective == ancestor.state.perspective) weight else -weight
             ancestor = ancestor.parent
         }

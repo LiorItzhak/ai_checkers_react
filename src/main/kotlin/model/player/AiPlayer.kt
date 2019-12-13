@@ -18,7 +18,7 @@ abstract class AiPlayer<G : BoardGame<M, out Board<out Piece>>, M : Move>(name: 
 class CheckerRandomPlayer(name: String? = null) : AiPlayer<CheckersGame, CheckersMove>(name ?: "random Player") {
 
     override suspend fun calcMove(game: CheckersGame, backupMove: CommittedMove<CheckersMove>): CheckersMove {
-        delay(3000)
+        delay(2000)
         return game.getRandomMove(player)
     }
 
@@ -38,7 +38,7 @@ class CheckersMctsAiPlayer : AiPlayer<CheckersGame, CheckersMove>("MCTS Player")
     override suspend fun calcMove(game: CheckersGame, backupMove: CommittedMove<CheckersMove>): CheckersMove {
         val mcts = MonteCarloTreeSearch<CheckersStaticState>()
         val rootState = CheckersStaticState(game, player)
-        return mcts.search(rootState,maxIterations = 5000, maxDepth = 20){ backupMove.commit(it.move!!) }.move!!
+        return mcts.search(rootState,maxIterations = 10000, maxDepth = 50){ backupMove.commit(it.move!!) }.move!!
     }
 
     class CheckersStaticState(val game: CheckersGame, val player: BoardGame.Player, val move: CheckersMove? = null) : StaticState {
