@@ -3,10 +3,7 @@ package model.player
 import kotlinx.coroutines.delay
 import model.Board
 import model.Piece
-import model.algorithm.BoardGameNode
-import model.algorithm.GameTreeAlgo
-import model.algorithm.MonteCarloTreeSearch
-import model.algorithm.StaticState
+import model.algorithm.*
 import model.game.Checkers.CheckersGame
 import model.game.Checkers.CheckersMove
 import model.game.Checkers.Move
@@ -24,10 +21,22 @@ class CheckerRandomPlayer(name: String? = null) : AiPlayer<CheckersGame, Checker
 
 }
 
-class CheckersAiPlayer(val algo: GameTreeAlgo<CheckersMove>) : AiPlayer<CheckersGame, CheckersMove>("MinMaxPlayer") {
+class CheckersAiPlayer(val algo: GameTreeAlgo<CheckersMove>? = null) : AiPlayer<CheckersGame, CheckersMove>("AlphaBetaPlayer") {
 
     override suspend fun calcMove(game: CheckersGame, backupMove: CommittedMove<CheckersMove>): CheckersMove {
-        return algo.getBestMove(BoardGameNode(game, player))
+        if (game.getAllPossibleMoves(player).size == 1)
+            return game.getAllPossibleMoves(player).first()
+        val node = BoardGameNode(game, player)
+
+        if (algo != null)
+            return algo.getBestMove(node)
+
+        var i = 1
+        while (true) {
+            delay(1)
+            backupMove.commit(AlphaBetaAlgo<CheckersMove>(i++).getBestMove(node))
+        }
+        TODO()
     }
 
 }
@@ -38,7 +47,7 @@ class CheckersMctsAiPlayer : AiPlayer<CheckersGame, CheckersMove>("MCTS Player")
     override suspend fun calcMove(game: CheckersGame, backupMove: CommittedMove<CheckersMove>): CheckersMove {
         val mcts = MonteCarloTreeSearch<CheckersStaticState>()
         val rootState = CheckersStaticState(game, player)
-        return mcts.search(rootState,maxIterations = 3000, maxDepth = 80){ backupMove.commit(it.move!!) }.move!!
+        return mcts.search(rootState,maxIterations = 2000, maxDepth = 50){ backupMove.commit(it.move!!) }.move!!
     }
 
     class CheckersStaticState(val game: CheckersGame, val player: BoardGame.Player, val move: CheckersMove? = null) : StaticState {
