@@ -85,7 +85,7 @@ class Node(val state: StaticState, val parent: Node? = null) {
             endState = endState.getChildren().random()
         }
 
-        weight +=endState.evaluate(/*parent!!.state.perspective*/)
+        weight += if (state.perspective == parent!!.state.perspective) state.evaluate() else -state.evaluate()//.endState.evaluate(/*parent!!.state.perspective*/)
         numOfVisits++
     }
 
