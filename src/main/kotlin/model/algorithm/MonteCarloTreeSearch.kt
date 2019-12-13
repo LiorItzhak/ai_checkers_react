@@ -16,6 +16,7 @@ class MonteCarloTreeSearch<T : StaticState> {
             rootNode.children?.maxBy { it.numOfVisits }?.let {
                 if(it!=chosenNode) {
                     chosenNode = it
+                    console.info("debug: MCTS backup :${it.state}")
                     onChooseChanged?.invoke(it.state as T)
                 }
             }
@@ -28,10 +29,7 @@ class MonteCarloTreeSearch<T : StaticState> {
     private val ucb1: Node.() -> Double = {
         when (numOfVisits) {
             0 -> Double.POSITIVE_INFINITY
-            else -> {
-                val perspectiveWeight = if (state.perspective == parent!!.state.perspective) weight else -weight
-                perspectiveWeight / numOfVisits + 2 * sqrt(ln(parent.numOfVisits.toDouble()) / numOfVisits)
-            }
+            else -> weight / numOfVisits + 2 * sqrt(ln(parent!!.numOfVisits.toDouble()) / numOfVisits)
         }
     }
 
@@ -85,7 +83,7 @@ class Node(val state: StaticState, val parent: Node? = null) {
             endState = endState.getChildren().random()
         }
 
-        weight += if (state.perspective == parent!!.state.perspective) state.evaluate() else -state.evaluate()//.endState.evaluate(/*parent!!.state.perspective*/)
+        weight += if (endState.perspective == parent?.state?.perspective?:2) endState.evaluate() else -endState.evaluate()//.endState.evaluate(/*parent!!.state.perspective*/)
         numOfVisits++
     }
 

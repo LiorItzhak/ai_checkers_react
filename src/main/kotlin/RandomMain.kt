@@ -16,8 +16,8 @@ import kotlin.browser.document
 import kotlin.browser.window
 fun main() {
     val player1 = CheckersMctsAiPlayer()//CheckersAiPlayer(AlphaBetaAlgo(10))//CheckersMctsAiPlayer()CheckersHumanPlayer
-    val player2 = CheckersAiPlayer(AlphaBetaAlgo(14))
-    val viewModel = CheckersGameViewModel(player1,player2,timeLimitMillis = 10000)
+    val player2 = CheckersAiPlayer(AlphaBetaAlgo(11))
+    val viewModel = CheckersGameViewModel(player1,player2,timeLimitMillis = null)
 
     window.onload = {
         render(document.getElementById("root")) {

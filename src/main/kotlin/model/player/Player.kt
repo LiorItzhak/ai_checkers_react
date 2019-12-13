@@ -24,8 +24,11 @@ abstract class Player<T : BoardGame<M, out Board<out Piece>>, M : Move>(val name
             //the turn hes been cancelled!
             //cancel the move calculation - don't wait!, dont let the job delay the turn,
             // turnJob?.cancel()//dont need - shared context//TODO check this
-            console.info("---timeout $player--${name}--------------")
-        } finally {
+            console.info("timeout $player--${name}----${cancelE.message}-")
+        }
+        catch (e:Throwable){
+            console.info("ERROR-$player--${e.message}-")
+        }finally {
             //if the turn is canceled return the committed backup move
             return withContext(NonCancellable) {
                 return@withContext move ?: backupMove.take()
@@ -37,7 +40,7 @@ abstract class Player<T : BoardGame<M, out Board<out Piece>>, M : Move>(val name
     protected abstract suspend fun calcMove(game: T, backupMove: CommittedMove<M>): M
 
 
-    class CommittedMove<T : Move> {
+     class CommittedMove<T : Move> {
         private var isTaken: Boolean = false
         private var move: T? = null
 
@@ -50,7 +53,9 @@ abstract class Player<T : BoardGame<M, out Board<out Piece>>, M : Move>(val name
 
         internal fun take(): T? {
             isTaken = true
+            console.info("debug: backup move taken $move")
             return move
+
         }
     }
 
