@@ -4,11 +4,11 @@ import kotlinx.coroutines.delay
 
 class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
 
-
     override suspend fun getBestMove(node: TreeNode<T>): T {
         i = 1
+//        cache.clear()
         val (delta, value) = alphaBeta(node, maxDepth)
-        console.log("best move value $value")
+        console.log("alpha beta found move with score: $value")
         if (delta != null)
             return delta
         throw RuntimeException("No move found")
@@ -19,6 +19,12 @@ class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
                                   alpha: Int = Int.MIN_VALUE,
                                   beta: Int = Int.MAX_VALUE,
                                   color: Int = 1): Pair<T?, Int> {
+//        cache[node]?.let { (cachedValue, (cachedDepth, cachedColor)) ->
+//            if(cachedDepth>=depth) {
+//                console.log("alpha beta found node in cache")
+//                return cachedValue
+//            }
+//        }
 
         if(i++%4000==0) {delay(1);console.info("alpha $i")}//only for single thread environment - allows context switch
 
@@ -29,7 +35,6 @@ class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
         val deltas = node.getChildrenWithDeltas()
         return when {
             deltas.isEmpty() -> null to color * node.getScore() //if node is a leaf return score
-//            deltas.size==1 -> deltas[0].second to color * deltas[0].first.getScore() //if there is only one child return his score
             else -> {//calculate recursively the best move
                 var bestPair = deltas[0].second to alpha
                 deltas.forEach { (child, delta) ->
@@ -37,10 +42,12 @@ class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
                     if (tmp > bestPair.second) {
                         bestPair = delta to tmp
                         if (tmp >= beta) {
+//                            cache[node] = bestPair to depth
                             return bestPair
                         }
                     }
                 }
+//                cache[node] = bestPair to depth
                 return bestPair
             }
         }

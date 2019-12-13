@@ -20,6 +20,9 @@ abstract class Board<T : Piece>(val size: Int) {
 
     abstract fun copy(): Board<T>
 
+    override fun hashCode(): Int {
+        return pieces.hashCode()
+    }
 }
 
 

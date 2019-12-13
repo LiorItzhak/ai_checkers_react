@@ -118,8 +118,16 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
         }
         return when {
             score1 == 0 -> -50
-            score2 == 0 ->  50
+            score2 == 0 -> 50
             else -> score1 - score2
         }
+    }
+
+    override fun hashCode(): Int {
+        return board.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return board == (other as? CheckersGame)?.board
     }
 }

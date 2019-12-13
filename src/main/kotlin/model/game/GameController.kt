@@ -6,6 +6,7 @@ import model.Piece
 import model.game.Checkers.Move
 import model.player.HumanPlayer
 import model.player.Player
+import org.w3c.dom.Worker
 import kotlin.browser.window
 import kotlin.js.Date
 
