@@ -53,7 +53,7 @@ class MonteCarloTreeSearch<T : StaticState> {
         if (node.numOfVisits != 0 && maxDepth?.let { node.depth < it } != false) {
             //Expand
             node.expand()
-            node = node.children!!.getOrNull(0) ?: node
+            node = node.children!!.firstOrNull() ?: node
         }
 
         //Simulate
@@ -81,13 +81,13 @@ class Node(val state: StaticState, val parent: Node? = null) {
     fun expand() {
         if (children == null) {
             children = state.getChildren().map { Node(it, this) }
-        }else TODO("fix this bug! dont suppose to be here! montecarlo alg")
+        }
     }
 
     fun rollOut(maxDepth: Int? = null) {
         var endState = this.state
         var i = 0
-        while (!endState.isTerminal && maxDepth?.let { depth + i++ < it } != false) {
+        while (!endState.isTerminal && maxDepth?.let { depth + i++ < it } != false/*null or true*/) {
             endState = endState.getChildren().random()
         }
 

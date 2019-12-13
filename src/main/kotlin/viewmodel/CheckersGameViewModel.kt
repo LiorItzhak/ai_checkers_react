@@ -40,19 +40,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
 
 
     fun startGame() {
-//        Worker("worker.js").apply {
-//            onmessage = {  t()}
-//            terminate()
-//
-//
-//        }
-        window.setTimeout(t(),0)
-
-        //start game on different coroutine
-    }
-
-    fun t(){
-        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+        CoroutineScope(Dispatchers.Default).launch {
             gameController.startNewGame()
 
         }
