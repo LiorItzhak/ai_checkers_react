@@ -13,8 +13,9 @@ import kotlin.coroutines.coroutineContext
 abstract class Player<T : BoardGame<M, out Board<out Piece>>, M : Move>(val name: String) {
     lateinit var player: BoardGame.Player
 
+    var backupMove: CommittedMove<M> = CommittedMove()
     suspend fun startTurn(game: T): M? {
-        val backupMove = CommittedMove<M>()
+        backupMove = CommittedMove<M>()
         var move: M? = null
         //if the turn is cancelled then stop the move calculation and return the backup move
         try {
@@ -25,14 +26,12 @@ abstract class Player<T : BoardGame<M, out Board<out Piece>>, M : Move>(val name
             //cancel the move calculation - don't wait!, dont let the job delay the turn,
             // turnJob?.cancel()//dont need - shared context//TODO check this
             console.info("timeout $player--${name}----${cancelE.message}-")
-        }
-        catch (e:Throwable){
+        } catch (e: Throwable) {
             console.info("ERROR-$player--${e.message}-")
-        }finally {
+        } finally {
             //if the turn is canceled return the committed backup move
-            return withContext(NonCancellable) {
-                return@withContext move ?: backupMove.take()
-            }
+            return move
+
         }
     }
 
@@ -40,7 +39,7 @@ abstract class Player<T : BoardGame<M, out Board<out Piece>>, M : Move>(val name
     protected abstract suspend fun calcMove(game: T, backupMove: CommittedMove<M>): M
 
 
-     class CommittedMove<T : Move> {
+    class CommittedMove<T : Move> {
         private var isTaken: Boolean = false
         private var move: T? = null
 

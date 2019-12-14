@@ -75,7 +75,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
                     listeners.forEach { it.onTimeoutTimerStart(timeLimitMillis) }//notify - timeLimitMillis is started
                     val m = withTimeoutOrNull(timeLimitMillis) { currentPlayer.startTurn(game.copy() as T) }
                     listeners.forEach { it.onTimeoutTimerEnd(timeLimitMillis) }//notify - timeLimitMillis is started
-                    m
+                    m?:currentPlayer.backupMove.take()
                 }
             }
             when (move) {
