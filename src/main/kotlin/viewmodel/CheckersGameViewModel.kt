@@ -32,11 +32,13 @@ const val COLOR_SELECTED = "#ffefcc"
 
 
 class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMove>,
-                            private val player2: Player<CheckersGame, CheckersMove>,timeLimitMillis :Long?=null)
+                            private val player2: Player<CheckersGame, CheckersMove>,
+                            timeLimitMillisPlayer1: Long?,
+                            timeLimitMillisPlayer2: Long? = timeLimitMillisPlayer1)
     : GameController.IGameControllerListener<CheckersGame, CheckersBoard>, HumanPlayer.IHumanPlayerListener<CheckersGame, CheckersMove> {
     val board = MutableObservable<Board>()//the observer view is notified when the value changes
     val timerSec = MutableObservable<Long?>()//the observer view is notified when the value changes
-    private val gameController = GameController(player1, player2, CheckersGame(), timeLimitMillis = timeLimitMillis).apply { addListener(this@CheckersGameViewModel) }
+    private val gameController = GameController(player1, player2, CheckersGame(), timeLimitMillisPlayer1,timeLimitMillisPlayer2 ).apply { addListener(this@CheckersGameViewModel) }
 
 
     fun startGame() {
@@ -54,7 +56,6 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
     fun t(){
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
             gameController.startNewGame()
-
         }
     }
 

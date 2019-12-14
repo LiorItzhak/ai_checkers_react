@@ -8,7 +8,6 @@ import model.game.Checkers.pieces.Queen
 
 
 class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_SIZE)) {
-
     private var onlyQueenMoveCounter = 0
 
     override var board: CheckersBoard = super.board
@@ -22,6 +21,7 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
     override fun copy(): CheckersGame {
         return CheckersGame().also {
             it.board = board.copy()
+            it.onlyQueenMoveCounter = onlyQueenMoveCounter
         }
     }
 
@@ -107,7 +107,6 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
     override fun isGameEnded(playerTurn: Player): Boolean = (onlyQueenMoveCounter >= 15) || getAllPossibleMoves(playerTurn).isEmpty()
 
     override fun getScore(player: Player): Int {
-
         if (onlyQueenMoveCounter>=15) return 0
 
         if (getAllPossibleMoves(player).isEmpty()) return -50
