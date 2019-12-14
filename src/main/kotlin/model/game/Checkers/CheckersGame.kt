@@ -1,7 +1,6 @@
 package model.game.Checkers
 
 import cartesianFor
-import kotlinx.coroutines.*
 import model.game.Checkers.pieces.King
 import model.game.Checkers.pieces.RegularPiece
 import model.game.BoardGame
@@ -9,6 +8,8 @@ import model.game.Checkers.pieces.Queen
 
 
 class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_SIZE)) {
+
+    private var onlyQueenMoveCounter = 0
 
     override var board: CheckersBoard = super.board
         private set
@@ -43,11 +44,13 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
         val owner: Player
         when (move) {
             is SingleMove -> {
+                if (board[move.start] is Queen && !move.ate) onlyQueenMoveCounter++ else onlyQueenMoveCounter=0
                 finalPos = move.end
                 owner = board[move.start]?.owner!!
                 doMove(move)
             }
             is MultiMove -> {
+                onlyQueenMoveCounter = 0
                 finalPos = move.moves.last().end
                 owner = board[move.moves.first().start]?.owner!!
                 move.moves.forEach { doMove(it) }
@@ -57,6 +60,7 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
         if ((finalPos.first == 0 && owner == Player.Player1)
                 || (finalPos.first == BOARD_SIZE - 1 && owner == Player.Player2))
             board[finalPos] = Queen(owner)
+//        console.log("only queens: $onlyQueenMoveCounter")
     }
 
     override fun getRandomMove(player: Player): CheckersMove = getAllPossibleMoves(player).random()
@@ -100,20 +104,26 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
         } else moves
     }
 
-    override fun isGameEnded(playerTurn: Player): Boolean = getAllPossibleMoves(playerTurn).isEmpty()
+    override fun isGameEnded(playerTurn: Player): Boolean = (onlyQueenMoveCounter >= 15) || getAllPossibleMoves(playerTurn).isEmpty()
 
     override fun getScore(player: Player): Int {
+
+        if (onlyQueenMoveCounter>=15) return 0
+
+        if (getAllPossibleMoves(player).isEmpty()) return -50
+//        if (getAllPossibleMoves(player.getOpponent()).isEmpty()) return 50
+
         var score1 = 0
         var score2 = 0
         cartesianFor(BOARD_SIZE, BOARD_SIZE) { pos ->
             board[pos]?.let {
-                val tmp = when (it) {
-                    is RegularPiece -> 1
-                    is King -> 2
-                    is Queen -> 10
-                    else -> 0
+                when (it) {
+                    is RegularPiece -> if (it.owner==player) score1+=1 else score2+=1
+                    is King -> if (it.owner==player) score1+=2 else score2+=2
+                    is Queen -> if (it.owner==player) score1+=10 else score2+=12
+                    else -> {}
                 }
-                if (it.owner == player) score1 += tmp else score2 += tmp
+//                if (it.owner == player) score1 += tmp else score2 += tmp
             }
         }
         return when {

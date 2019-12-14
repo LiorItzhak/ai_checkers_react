@@ -24,7 +24,16 @@ abstract class BoardGame<M: Move,B : Board<out Piece>>(open val board: B) {
 
     abstract fun copy(): BoardGame<M, B>
 
-    enum class Player { Player1, Player2 }
+    enum class Player {
+        Player1 {
+            override fun getOpponent() = Player2
+        },
+        Player2 {
+            override fun getOpponent() = Player1
+        };
+
+        abstract fun getOpponent(): Player
+    }
 
 //    protected val listeners = mutableListOf<IGameListener<B>>()
 //    fun addListener(listener: IGameListener<B>) = listeners.add(listener)
