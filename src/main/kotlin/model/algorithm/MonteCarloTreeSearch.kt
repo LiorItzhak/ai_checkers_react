@@ -21,8 +21,8 @@ class MonteCarloTreeSearch<T : StaticState> {
                     }
                 }
                 //only for single threaded environments - allows context switch//
-                if (rootNode.numOfVisits % 150 == 0) {
-                    delay(1);console.info("numOfVisits ${rootNode.numOfVisits} ||${chosenNode!!.weight / chosenNode!!.numOfVisits} | ${chosenNode!!.numOfVisits}/${rootNode.numOfVisits}")
+                if (rootNode.numOfVisits % 100 == 0) {
+                    delay(1);console.info("mcts w= ${chosenNode!!.weight / chosenNode!!.numOfVisits} | ${chosenNode!!.numOfVisits}/${rootNode.numOfVisits}")
                 }
             }
         } finally {
@@ -57,10 +57,10 @@ class MonteCarloTreeSearch<T : StaticState> {
         }
 
         //Simulate
-        node.rollOut(maxDepth)
+        val w= node.rollOut(maxDepth)
 
         //Backpropagation
-        node.backpropagation()
+        node.backpropagation(w)
     }
 }
 
@@ -84,19 +84,20 @@ class Node(val state: StaticState, val parent: Node? = null) {
         }
     }
 
-    fun rollOut(maxDepth: Int? = null) {
+    fun rollOut(maxDepth: Int? = null):Double {
         var endState = this.state
         var i = 0
         while (!endState.isTerminal && maxDepth?.let { depth + i++ < it } != false/*null or true*/) {
             endState = endState.getChildren().random()
         }
 
-        weight += if (endState.perspective == parent?.state?.perspective ?: 2) endState.evaluate() else -endState.evaluate()//.endState.evaluate(/*parent!!.state.perspective*/)
+        return  if (endState.perspective == parent?.state?.perspective ?: -1) endState.evaluate() else -endState.evaluate()//.endState.evaluate(/*parent!!.state.perspective*/)
         // console.info("endState weight = ${endState.evaluate()}")
-        numOfVisits++
     }
 
-    fun backpropagation() {
+    fun backpropagation(weight:Double) {
+        numOfVisits++
+        this.weight +=weight
         var ancestor = parent
         while (ancestor != null) {
             ancestor.numOfVisits++
