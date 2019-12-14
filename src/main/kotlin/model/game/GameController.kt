@@ -19,7 +19,8 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
         private val player1: Player<T, M>,
         private val player2: Player<T, M>,
         private val game: T,
-        private val timeLimitMillis: Long? = null) : IGameController {
+        private val timeLimitMillisPlayer1: Long? = null,
+        private val timeLimitMillisPlayer2: Long? = timeLimitMillisPlayer1) : IGameController {
     private val listeners = mutableListOf<IGameControllerListener<T, B>>()
     fun addListener(listener: IGameControllerListener<T, B>) = listeners.add(listener)
     fun removeListener(listener: IGameControllerListener<T, B>) = listeners.remove(listener)
@@ -69,13 +70,13 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
             listeners.forEach { it.onTurnStarted(game.copy() as T, currentPlayer.player) }//notify - turn is started
             //TODO pass the player a copy of the game, by do so he will be unable to cheat.
             //if there is a time limit then start the turn with timout
-            var move: M? = when (timeLimitMillis) {
+            var move: M? = when (val timeLimitMillis = if(currentPlayer.player == BoardGame.Player.Player1) timeLimitMillisPlayer1 else timeLimitMillisPlayer2) {
                 null -> currentPlayer.startTurn(game.copy() as T)
                 else -> {
                     listeners.forEach { it.onTimeoutTimerStart(timeLimitMillis) }//notify - timeLimitMillis is started
                     val m = withTimeoutOrNull(timeLimitMillis) { currentPlayer.startTurn(game.copy() as T) }
                     listeners.forEach { it.onTimeoutTimerEnd(timeLimitMillis) }//notify - timeLimitMillis is started
-                    m?:currentPlayer.backupMove.take()
+                    m ?: currentPlayer.backupMove.take()
                 }
             }
             when (move) {

@@ -36,7 +36,7 @@ class MonteCarloTreeSearch<T : StaticState> {
     private val ucb1: Node.() -> Double = {
         when (numOfVisits) {
             0 -> Double.POSITIVE_INFINITY
-            else -> weight / numOfVisits + 50 * sqrt(ln(parent!!.numOfVisits.toDouble()) / numOfVisits)
+            else -> weight / numOfVisits +70.7* sqrt(ln(parent!!.numOfVisits.toDouble()) / numOfVisits)
         }
     }
 
