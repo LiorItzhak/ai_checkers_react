@@ -1,6 +1,7 @@
 package model.player
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 import model.Board
 import model.Piece
 import model.algorithm.*
@@ -21,22 +22,36 @@ class CheckerRandomPlayer(name: String? = null) : AiPlayer<CheckersGame, Checker
 
 }
 
-class CheckersAiPlayer(val algo: GameTreeAlgo<CheckersMove>? = null) : AiPlayer<CheckersGame, CheckersMove>("AlphaBetaPlayer") {
+class CheckersAiPlayer(private val algo: GameTreeAlgo<CheckersMove>? = null,
+                       private val time: Long? = null) : AiPlayer<CheckersGame, CheckersMove>("AlphaBetaPlayer") {
 
     override suspend fun calcMove(game: CheckersGame, backupMove: CommittedMove<CheckersMove>): CheckersMove {
         if (game.getAllPossibleMoves(player).size == 1)
             return game.getAllPossibleMoves(player).first()
         val node = BoardGameNode(game, player)
 
-        if (algo != null)
+        if (algo != null && time==null)
             return algo.getBestMove(node)
-
-        var i = 1
-        while (true) {
-            delay(1)
-            backupMove.commit(AlphaBetaAlgo<CheckersMove>(i++).getBestMove(node))
+        else if(time == null) {
+            var i = 1
+            while (true) {
+                console.log("alpha beta depth is: $i")
+                delay(1)
+                backupMove.commit(AlphaBetaAlgo<CheckersMove>(i++).getBestMove(node))
+            }
+            TODO()
         }
-        TODO()
+        else {
+            withTimeout(time) {
+                var i = 1
+                while (true) {
+                    console.log("alpha beta depth is: $i")
+                    delay(1)
+                    backupMove.commit(AlphaBetaAlgo<CheckersMove>(i++).getBestMove(node))
+                }
+                TODO()
+            }
+        }
     }
 
 }
