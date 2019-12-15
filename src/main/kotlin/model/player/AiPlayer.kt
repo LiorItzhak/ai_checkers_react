@@ -71,7 +71,7 @@ class CheckersMctsAiPlayer(private val maxIterations: Int? = null, private val m
         }
 
         override val isTerminal: Boolean
-            get() = children.isEmpty()
+            get() = game.isGameEnded(player)
 
         override fun evaluate(): Double = game.getScore(player) / 50.0
 

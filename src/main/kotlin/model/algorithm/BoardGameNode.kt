@@ -13,14 +13,10 @@ data class BoardGameNode<T: Move>(private val game: BoardGame<T, *>,
 
     private val score by lazy{ game.getScore(owner) }
 
-    companion object {
-        private fun oppositePlayer(player: BoardGame.Player) =
-                if(player==BoardGame.Player.Player1) BoardGame.Player.Player2 else BoardGame.Player.Player1
-    }
 
     private fun getChildForDelta(delta: T): TreeNode<T> {
         val newGame = game.copy().apply { applyMove(delta) }
-        return BoardGameNode(newGame, owner, oppositePlayer(currentPlayer))
+        return BoardGameNode(newGame, owner, currentPlayer.getOpponent())
     }
 
     override suspend fun getChildrenWithDeltas(): List<Pair<TreeNode<T>, T>> {
@@ -30,4 +26,7 @@ data class BoardGameNode<T: Move>(private val game: BoardGame<T, *>,
     override fun getScore(): Int {
         return score
     }
+
+    override val isTerminal: Boolean
+        get() = children.isEmpty() || game.isGameEnded(currentPlayer)
 }

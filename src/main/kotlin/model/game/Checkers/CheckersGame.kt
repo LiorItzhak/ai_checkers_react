@@ -9,7 +9,7 @@ import model.game.Checkers.pieces.Queen
 
 class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_SIZE)) {
     private var onlyQueenMoveCounter = 0
-
+    //TODO cache all possible moves (until apply move called)
     override var board: CheckersBoard = super.board
         private set
 
@@ -104,6 +104,7 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
         } else moves
     }
 
+
     override fun isGameEnded(playerTurn: Player): Boolean = (onlyQueenMoveCounter >= 15) || getAllPossibleMoves(playerTurn).isEmpty()
 
     override fun getScore(player: Player): Int {
@@ -119,7 +120,7 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
                 when (it) {
                     is RegularPiece -> if (it.owner==player) score1+=1 else score2+=1
                     is King -> if (it.owner==player) score1+=2 else score2+=2
-                    is Queen -> if (it.owner==player) score1+=10 else score2+=12
+                    is Queen -> if (it.owner==player) score1+=10 else score2+=10
                     else -> {}
                 }
 //                if (it.owner == player) score1 += tmp else score2 += tmp

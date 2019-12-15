@@ -25,10 +25,10 @@ class AlphaBetaAlgo<T>(private val maxDepth: Int): GameTreeAlgo<T> {
         }//only for single thread environment - allows context switch
 
         // console.info("(${i++})")
-        val deltas = node.getChildrenWithDeltas()
-        if (depth == 0 || deltas.isEmpty())
+        if (depth == 0 || node.isTerminal)
             return null to color * node.getScore()
 
+        val deltas = node.getChildrenWithDeltas()
         var bestPair = deltas[0].second to alpha
         deltas.forEach { (child, delta) ->
             val tmp = -alphaBeta(child, depth - 1, -beta, -bestPair.second, -color).second
