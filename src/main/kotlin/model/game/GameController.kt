@@ -66,7 +66,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
         do {
             turnNum++
             val startTime = Date()
-            console.info("${currentPlayer.name} : start turn${turnNum} -${startTime.toTimeString()}")
+            console.info("${currentPlayer.player}-${currentPlayer.name}: start turn${turnNum} -${startTime.toTimeShortString()}")
             listeners.forEach { it.onTurnStarted(game.copy() as T, currentPlayer.player) }//notify - turn is started
             //TODO pass the player a copy of the game, by do so he will be unable to cheat.
             //if there is a time limit then start the turn with timout
@@ -100,7 +100,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
             //toggle turn
             val endTime = Date()
-            console.info("${currentPlayer.name} : end turn${turnNum} -${endTime.toTimeString()} ---- ${(endTime - startTime).toTimeString()}  ")
+            console.info("${currentPlayer.name} : end turn${turnNum} -${endTime.toTimeShortString()} ---- ${(endTime - startTime).toTimeShortString()}  ")
             console.info("${currentPlayer.name} : end turn")
             listeners.forEach { it.onTurnEnded(game.copy() as T, currentPlayer.player) }//notify - turn is ended
             delay(500)
@@ -145,5 +145,6 @@ private operator fun Date.minus(startTime: Date) = Date(
         minute = this.getMinutes() - startTime.getMinutes(),
         second = this.getSeconds() - startTime.getSeconds(),
         millisecond = this.getMilliseconds() - startTime.getMilliseconds()
-
 )
+
+private fun Date.toTimeShortString() = "${getHours()}:${getMinutes()}:${getSeconds()}"
