@@ -23,7 +23,6 @@ fun main() {
 
     window.onload = {
         render(document.getElementById("root")) {
-            h1 { +"Hello World!3" }
             checkerApp { this.viewModel = viewModel }
         }
     }
