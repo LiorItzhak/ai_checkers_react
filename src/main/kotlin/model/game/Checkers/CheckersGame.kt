@@ -7,8 +7,13 @@ import model.game.BoardGame
 import model.game.Checkers.pieces.Queen
 
 
-class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_SIZE)) {
-    private var onlyQueenMoveCounter = 0
+class CheckersGame(private val firstPlayer: Player = Player.Player1) : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_SIZE)) {
+
+    private var drawStepCounter = 0
+    private var movedCached = false
+    var currentPlayer: Player = firstPlayer
+    private set
+
     //TODO cache all possible moves (until apply move called)
     override var board: CheckersBoard = super.board
         private set
@@ -19,51 +24,61 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
 
 
     override fun copy(): CheckersGame {
-        return CheckersGame().also {
+        return CheckersGame(firstPlayer).also {
             it.board = board.copy()
-            it.onlyQueenMoveCounter = onlyQueenMoveCounter
+            it.currentPlayer = currentPlayer
+            it.drawStepCounter = drawStepCounter
         }
     }
 
     override fun initBoard() {
-        //TODO clear board before initiating
+        currentPlayer = firstPlayer
+        board.clear()
+
         cartesianFor(BOARD_SIZE / 2 - 1, (BOARD_SIZE + 1) / 2) { line, i ->
             board[line, 2 * i + line % 2] = RegularPiece(Player.Player2)
             board[BOARD_SIZE - 1 - line, 2 * i + (BOARD_SIZE - 1 - line) % 2] = RegularPiece(Player.Player1)
         }
-        //  listeners.forEach { it.onBoardChanged(board.copy()) }
     }
 
     override fun applyMove(move: CheckersMove) {
         fun doMove(move: SingleMove) {
+            val piece = board.remove(move.start)
+                    ?: throw IllegalArgumentException("Move is illegal: no piece at ${move.start}")
+
+            require(piece.owner == currentPlayer) { "piece owner was ${piece.owner}. but only $currentPlayer can make a turn at this time" }
+            board[move.end] = piece
+
             if (move.atePos != null)
                 board.remove(move.atePos)
-            board[move.end] = board.remove(move.start)!!
         }
+
         val finalPos: Pair<Int, Int>
-        val owner: Player
         when (move) {
             is SingleMove -> {
-                if (board[move.start] is Queen && !move.ate) onlyQueenMoveCounter++ else onlyQueenMoveCounter=0
+                //update queen counter to catch draws
+                if (board[move.start] is Queen && !move.ate) drawStepCounter++ else drawStepCounter = 0
                 finalPos = move.end
-                owner = board[move.start]?.owner!!
                 doMove(move)
             }
             is MultiMove -> {
-                onlyQueenMoveCounter = 0
+                //defiantly ate piece in a multiMove: restore draw counter
+                drawStepCounter = 0
                 finalPos = move.moves.last().end
-                owner = board[move.moves.first().start]?.owner!!
                 move.moves.forEach { doMove(it) }
             }
-            else -> {TODO()}
+            else -> throw UnsupportedOperationException("Unknown move type: can't apply move")
         }
-        if ((finalPos.first == 0 && owner == Player.Player1)
-                || (finalPos.first == BOARD_SIZE - 1 && owner == Player.Player2))
-            board[finalPos] = Queen(owner)
-//        console.log("only queens: $onlyQueenMoveCounter")
+        if ((finalPos.first == BOARD_SIZE - 1 && currentPlayer == Player.Player2)
+                || (finalPos.first == 0 && currentPlayer == Player.Player1))
+            board[finalPos] = Queen(currentPlayer)
+
+        //remove cache, change current player
+        movedCached = false
+        currentPlayer = currentPlayer.getOpponent()
     }
 
-    override fun getRandomMove(player: Player): CheckersMove = getAllPossibleMoves(player).random()
+    override fun getRandomMove(player: Player): CheckersMove = possibleMoves().random()
 
     override fun getAllPossibleMoves(player: Player): List<CheckersMove> {
         val moves = mutableListOf<SingleMove>()
@@ -104,14 +119,11 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
         } else moves
     }
 
-
-    override fun isGameEnded(playerTurn: Player): Boolean = (onlyQueenMoveCounter >= 15) || getAllPossibleMoves(playerTurn).isEmpty()
+    override fun isGameEnded(playerTurn: Player): Boolean = (drawStepCounter >= 15) || possibleMoves().isEmpty()
 
     override fun getScore(player: Player): Int {
-        if (onlyQueenMoveCounter>=15) return 0
-
-        if (getAllPossibleMoves(player).isEmpty()) return -50
-//        if (getAllPossibleMoves(player.getOpponent()).isEmpty()) return 50
+        if (drawStepCounter>=15) return 0
+        if (possibleMoves().isEmpty()) return -50
 
         var score1 = 0
         var score2 = 0
@@ -123,7 +135,6 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
                     is Queen -> if (it.owner==player) score1+=10 else score2+=10
                     else -> {}
                 }
-//                if (it.owner == player) score1 += tmp else score2 += tmp
             }
         }
         return when {
@@ -134,10 +145,26 @@ class CheckersGame : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_
     }
 
     override fun hashCode(): Int {
+        console.log("hash: ${board.hashCode()}")
         return board.hashCode()
     }
 
     override fun equals(other: Any?): Boolean {
         return board == (other as? CheckersGame)?.board
     }
+
+    private var possibleMoves: List<CheckersMove>? = null
+    override fun possibleMoves(): List<CheckersMove> {
+        if (possibleMoves!=null && movedCached)
+            return possibleMoves as List<CheckersMove>
+
+        possibleMoves = getAllPossibleMoves(currentPlayer)
+        movedCached = true
+        return possibleMoves as List<CheckersMove>
+    }
+
+    override fun isEnded(): Boolean {
+        return isGameEnded(currentPlayer)
+    }
+
 }

@@ -9,7 +9,7 @@ import kotlin.math.sqrt
 class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.414,
                                             private val usePreviousSearchInfo: Boolean = true,
                                             private val returnWhenOnlyOneOptionAvailable: Boolean = false,
-                                            cacheStates: Boolean = false) {
+                                            cacheStates: Boolean = true) {
     suspend fun search(rootState: T, maxIterations: Int? = null, maxDepth: Int? = null, onChooseChanged: ((T) -> Unit)? = null): T {
         numOfUsedCachedStates = 0//debug
         val rootNode = cachedChosenNode?.children?.firstOrNull { node -> node.state == rootState } ?: Node(rootState)

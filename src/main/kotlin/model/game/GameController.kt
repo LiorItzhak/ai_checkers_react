@@ -94,7 +94,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
             //apply the turn
             listeners.forEach { it.onMoveDecided(move as Move, game.board.copy() as B) }
-            listeners.forEach { it.playMoveAnimation(game.copy() as T, move) }//notify board has change
+            listeners.forEach { it.playMoveAnimation(game.copy().board, move) }//notify board has change
             game.applyMove(move)
             listeners.forEach { it.onBoardChanged(game.board.copy() as B) }//notify board has change
 
@@ -128,7 +128,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
 
         fun onTimeoutTimerEnd(timeoutMillis: Long)
 
-        suspend fun playMoveAnimation(game: T, move: Move)
+        suspend fun playMoveAnimation(board: B, move: Move)
 
     }
 
