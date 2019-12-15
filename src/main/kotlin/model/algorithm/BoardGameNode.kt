@@ -3,7 +3,7 @@ package model.algorithm
 import model.game.BoardGame
 import model.game.Checkers.Move
 
-data class BoardGameNode<T: Move>(private val game: BoardGame<T, *>,
+class BoardGameNode<T: Move>(private val game: BoardGame<T, *>,
                                   private val owner: BoardGame.Player): TreeNode<T> {
 
 
@@ -23,4 +23,12 @@ data class BoardGameNode<T: Move>(private val game: BoardGame<T, *>,
 
     override val isTerminal: Boolean
         get() = game.possibleMoves().isEmpty() || game.isEnded()
+
+    override fun hashCode(): Int {
+        return game.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return (other as? BoardGameNode<*>)?.game == game
+    }
 }

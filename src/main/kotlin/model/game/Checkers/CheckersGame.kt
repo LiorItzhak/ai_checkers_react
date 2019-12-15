@@ -145,7 +145,6 @@ class CheckersGame(private val firstPlayer: Player = Player.Player1) : BoardGame
     }
 
     override fun hashCode(): Int {
-        console.log("hash: ${board.hashCode()}")
         return board.hashCode()
     }
 
