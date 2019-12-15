@@ -36,4 +36,8 @@ abstract class MutableBoard<T : Piece>(size: Int) : Board<T>(size) {
     }
 
     fun remove(pos: Pair<Int, Int>): T? = pieces.remove(pos)
+
+    fun clear() {
+        pieces.clear()
+    }
 }

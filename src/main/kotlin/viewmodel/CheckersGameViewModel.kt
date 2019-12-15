@@ -2,6 +2,7 @@ package viewmodel
 
 import Utills.MutableObservable
 import kotlinx.coroutines.*
+import model.MutableBoard
 import model.Piece
 import model.game.BoardGame
 import model.game.Checkers.*
@@ -42,15 +43,7 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
 
 
     fun startGame() {
-//        Worker("worker.js").apply {
-//            onmessage = {  t()}
-//            terminate()
-//
-//
-//        }
         window.setTimeout(t(),0)
-
-        //start game on different coroutine
     }
 
     fun t(){
@@ -147,16 +140,22 @@ class CheckersGameViewModel(private val player1: Player<CheckersGame, CheckersMo
         this@CheckersGameViewModel.board.value = board.toBoardUi()
     }
 
-    override suspend fun playMoveAnimation(game: CheckersGame, move: Move) {
+    override suspend fun playMoveAnimation(board: CheckersBoard, move: Move) {
         console.info("play animation $move")
-        if (move is MultiMove && game.board[move.moves[0].start]?.owner?.isHuman() == false) {
+        if (move is MultiMove && board[move.moves[0].start]?.owner?.isHuman() == false) {
             move.moves.forEachIndexed { i, m ->
                 console.info("play animation  part $i - $m")
                 delay(500)
                 console.info("delayed play animation  part $i - $m")
-                game.applyMove(m)
+                //apply move
+                val piece = board.remove(m.start)
+                        ?: throw IllegalArgumentException("Move is illegal: no piece at ${m.start}")
+                board[m.end] = piece
+                if (m.atePos != null)
+                    board.remove(m.atePos)
+
                 console.info("applied play animation  part $i - $m")
-                this@CheckersGameViewModel.board.value = game.board.toBoardUi()
+                this@CheckersGameViewModel.board.value = board.toBoardUi()
             }
         }
     }

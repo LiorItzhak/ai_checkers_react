@@ -2,6 +2,7 @@ package model.player
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import model.Board
 import model.Piece
 import model.algorithm.*
@@ -22,37 +23,29 @@ class CheckerRandomPlayer(name: String? = null) : AiPlayer<CheckersGame, Checker
 
 }
 
-class CheckersAiPlayer(private val algo: GameTreeAlgo<CheckersMove>? = null,
-                       private val time: Long? = null) : AiPlayer<CheckersGame, CheckersMove>("AlphaBetaPlayer") {
+class CheckersAiPlayer(algo: GameTreeAlgo<CheckersMove>? = null)
+    : AiPlayer<CheckersGame, CheckersMove>("AlphaBetaPlayer") {
+    private val algo = algo ?: AlphaBetaAlgo()
 
+    //TODO add depth limit
     override suspend fun calcMove(game: CheckersGame, backupMove: CommittedMove<CheckersMove>): CheckersMove {
-        if (game.getAllPossibleMoves(player).size == 1)
-            return game.getAllPossibleMoves(player).first()
+        algo.disposeCache()
+        if (game.possibleMoves().size == 1)
+            return game.possibleMoves().first()
         val node = BoardGameNode(game, player)
 
-        if (algo != null && time == null)
-            return algo.getBestMove(node)
-        else if (time == null) {
+        try {
             var i = 1
             while (true) {
-                console.log("alpha beta depth is: $i")
                 delay(1)
-                backupMove.commit(AlphaBetaAlgo<CheckersMove>(i++).getBestMove(node))
+                backupMove.commit(algo.getBestMove(node, i++))
             }
             TODO()
-        } else {
-            withTimeout(time) {
-                var i = 1
-                while (true) {
-                    console.log("alpha beta depth is: $i")
-                    delay(1)
-                    backupMove.commit(AlphaBetaAlgo<CheckersMove>(i++).getBestMove(node))
-                }
-                TODO()
-            }
+        } finally {
+            console.log("cache disposed")
+            algo.disposeCache()
         }
     }
-
 }
 
 

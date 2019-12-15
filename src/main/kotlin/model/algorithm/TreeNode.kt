@@ -7,4 +7,8 @@ interface TreeNode<T> {
     fun getScore(): Int
 
     val isTerminal : Boolean
+
+    override fun hashCode(): Int
+
+    override fun equals(other: Any?): Boolean
 }
