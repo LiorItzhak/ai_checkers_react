@@ -19,7 +19,7 @@ fun main() {
 //    val player1 = CheckersHumanPlayer()//CheckersAiPlayer(AlphaBetaAlgo(10))//CheckersMctsAiPlayer()
     val player1 = CheckersHumanPlayer()
     val player2 = CheckersMctsAiPlayer()//CheckersMctsAiPlayer(maxDepth = 50)//CheckersAiPlayer(/*AlphaBetaAlgo(10)*/)
-    val viewModel = CheckersGameViewModel(player1,player2,timeLimitMillisPlayer1 = 5_000,timeLimitMillisPlayer2 = 5_000)
+    val viewModel = CheckersGameViewModel(player1,player2,timeLimitMillisPlayer1 = null,timeLimitMillisPlayer2 = 5_000)
 
     window.onload = {
         render(document.getElementById("root")) {
