@@ -26,7 +26,7 @@ abstract class BoardGame<M: Move,B : Board<out Piece>>(open val board: B) {
 
     abstract fun isEnded(): Boolean
 
-    abstract fun getScore(player: Player): Int
+    abstract fun getScore(player: Player): Double
 
     abstract fun copy(): BoardGame<M, B>
 

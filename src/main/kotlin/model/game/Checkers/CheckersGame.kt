@@ -121,16 +121,22 @@ class CheckersGame(private val firstPlayer: Player = Player.Player1) : BoardGame
 
     override fun isGameEnded(playerTurn: Player): Boolean = (drawStepCounter >= 15) || possibleMoves().isEmpty()
 
-    override fun getScore(player: Player): Int {
-        if (drawStepCounter>=15) return 0
-        if (possibleMoves().isEmpty()) return -50
+    override fun getScore(player: Player): Double {
+        fun getDistFromEnd(pos: Pair<Int, Int>, owner: Player): Double {
+            return if (owner==Player.Player2)
+                pos.first.toDouble() / BOARD_SIZE
+            else
+                (BOARD_SIZE-1-pos.first).toDouble() / BOARD_SIZE
+        }
 
-        var score1 = 0
-        var score2 = 0
+        if (drawStepCounter>=15) return 0.0
+
+        var score1 = 0.0
+        var score2 = 0.0
         cartesianFor(BOARD_SIZE, BOARD_SIZE) { pos ->
             board[pos]?.let {
                 when (it) {
-                    is RegularPiece -> if (it.owner==player) score1+=1 else score2+=1
+                    is RegularPiece -> if (it.owner==player) score1+= (1+getDistFromEnd(pos, it.owner)) else score2 += (1+getDistFromEnd(pos, it.owner))
                     is King -> if (it.owner==player) score1+=2 else score2+=2
                     is Queen -> if (it.owner==player) score1+=10 else score2+=10
                     else -> {}
@@ -138,8 +144,8 @@ class CheckersGame(private val firstPlayer: Player = Player.Player1) : BoardGame
             }
         }
         return when {
-            score1 == 0 -> -50
-            score2 == 0 -> 50
+            score1 == 0.0 -> -50.0
+            score2 == 0.0 -> 50.0
             else -> score1 - score2
         }
     }

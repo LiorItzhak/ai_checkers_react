@@ -17,7 +17,7 @@ class BoardGameNode<T: Move>(private val game: BoardGame<T, *>,
                 .map { move -> getChildForDelta(move) to move }
     }
 
-    override fun getScore(): Int {
+    override fun getScore(): Double {
         return game.getScore(owner)
     }
 
