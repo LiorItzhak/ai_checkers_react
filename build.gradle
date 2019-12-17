@@ -53,6 +53,9 @@ kotlinFrontend {
         dependency('react', react_version)
         dependency('react-dom', react_version)
 
+
+        dependency('@logrally/kotlin-react-ring-ui')
+
         dependency('styled-components', '4')
         dependency('inline-style-prefixer', '^5.1.0')
         dependency('kotlinx-coroutines-core', '1.3.2')

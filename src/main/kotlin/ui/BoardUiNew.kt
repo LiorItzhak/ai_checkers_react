@@ -1,15 +1,11 @@
 package ui
-
 import kotlinx.css.*
 import kotlinx.html.js.onClickFunction
 import react.RBuilder
 import react.dom.div
 import styled.css
-import styled.styled
 import styled.styledButton
 import styled.styledDiv
-import kotlin.browser.document
-import kotlin.browser.window
 
 data class Square(val colorHtml: String, val imageUrl: String? = null,val isClickable : Boolean = false )
 data class Board(val size: Int, val squares: List<List<Square>>){
@@ -30,6 +26,7 @@ fun RBuilder.boardUi(board: Board,onBoardClick : (( Pair<Int, Int>)->Unit)? = nu
             position = Position.relative
             //justifyContent = JustifyContent.center
         }
+
         for (row in 0 until board.size) {
             for (col in 0 until board.size) {
                 val square = board.squares[row][col]

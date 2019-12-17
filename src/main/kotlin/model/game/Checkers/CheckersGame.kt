@@ -11,8 +11,6 @@ class CheckersGame(private val firstPlayer: Player = Player.Player1) : BoardGame
 
     private var drawStepCounter = 0
     private var movedCached = false
-    var currentPlayer: Player = firstPlayer
-    private set
 
     //TODO cache all possible moves (until apply move called)
     override var board: CheckersBoard = super.board
@@ -145,11 +143,11 @@ class CheckersGame(private val firstPlayer: Player = Player.Player1) : BoardGame
     }
 
     override fun hashCode(): Int {
-        return board.hashCode()
+        return board.hashCode() +31*currentPlayer.hashCode()
     }
 
     override fun equals(other: Any?): Boolean {
-        return board == (other as? CheckersGame)?.board
+        return board == (other as? CheckersGame)?.board && currentPlayer == other.currentPlayer
     }
 
     private var possibleMoves: List<CheckersMove>? = null
