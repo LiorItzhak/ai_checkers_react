@@ -11,7 +11,7 @@ class NegaMaxAlgo<T>(): GameTreeAlgo<T> {
         throw RuntimeException("No move found")
     }
 
-    suspend fun <T> negaMax(node: TreeNode<T>, depth: Int, color: Int = 1): Pair<T?, Int> {
+    suspend fun <T> negaMax(node: TreeNode<T>, depth: Int, color: Int = 1): Pair<T?, Double> {
         //check if reached maximum depth
         if (depth == 0)
             return null to color * node.getScore()

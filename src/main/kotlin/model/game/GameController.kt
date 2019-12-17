@@ -57,7 +57,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
             true -> if (player1Score > player2Score) player1.player else if (player1Score < player2Score) player2.player else null
             else -> null
         }
-        listeners.forEach { it.onGameEnded(winner, game.getScore(winner ?: player1.player)) }
+        listeners.forEach { it.onGameEnded(winner, game.getScore(winner ?: player1.player).toInt()) }
     }
 
 
