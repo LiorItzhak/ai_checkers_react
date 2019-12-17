@@ -53,7 +53,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
         console.info("end game")
         val player1Score = game.getScore(player1.player)
         val player2Score = game.getScore(player2.player)
-        val winner = when (game.isGameEnded(turn)) {
+        val winner = when (game.isEnded()) {
             true -> if (player1Score > player2Score) player1.player else if (player1Score < player2Score) player2.player else null
             else -> null
         }
@@ -87,7 +87,7 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
             move = move ?: game.getRandomMove(turn)
             console.log("move: $move")
 
-            if (!game.getAllPossibleMoves(turn).any { it == move }) {
+            if (!game.possibleMoves().any { it == move }) {
                 console.error("${currentPlayer.player} played illegal move :$move, ending game")
                 break
             }
@@ -104,8 +104,8 @@ class GameController<T : BoardGame<M, B>, B : Board<out Piece>, M : Move>(
             console.info("${currentPlayer.name} : end turn")
             listeners.forEach { it.onTurnEnded(game.copy() as T, currentPlayer.player) }//notify - turn is ended
             delay(500)
-            currentPlayer = if (currentPlayer == player1) player2 else player1
-        } while (!game.isGameEnded(currentPlayer.player))
+            currentPlayer = if (game.currentPlayer == player1.player) player1 else player2
+        } while (!game.isEnded())
 
 
     }

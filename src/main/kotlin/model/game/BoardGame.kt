@@ -6,7 +6,8 @@ import model.game.Checkers.Move
 
 abstract class BoardGame<M: Move,B : Board<out Piece>>(open val board: B) {
 
-
+    var currentPlayer: Player = Player.Player1
+        protected  set
     abstract fun initBoard()
     //throw illegalMoveException if the move is illegal
     //if multiMoveDelay is not null then play the moves with delay between the moves' parts

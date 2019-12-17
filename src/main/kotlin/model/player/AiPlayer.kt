@@ -1,8 +1,6 @@
 package model.player
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.withTimeoutOrNull
 import model.Board
 import model.Piece
 import model.algorithm.*
@@ -60,11 +58,11 @@ class CheckersMctsAiPlayer(private val maxIterations: Int? = null, private val m
     class CheckersStaticState(val game: CheckersGame, val player: BoardGame.Player, val move: CheckersMove? = null) : StaticState {
         private val opponent = if (player == BoardGame.Player.Player1) BoardGame.Player.Player2 else BoardGame.Player.Player1
         private val children: List<CheckersStaticState> by lazy {
-            game.getAllPossibleMoves(player).map { CheckersStaticState(game.copy().apply { applyMove(it) }, opponent, it) }
+            game.possibleMoves().map { CheckersStaticState(game.copy().apply { applyMove(it) }, opponent, it) }
         }
 
         override val isTerminal: Boolean
-            get() = game.isGameEnded(player)
+            get() = game.isEnded()
 
         override fun evaluate(): Double = game.getScore(player) / 50.0
 
@@ -84,14 +82,11 @@ class CheckersMctsAiPlayer(private val maxIterations: Int? = null, private val m
         override fun equals(other: Any?): Boolean {
             if (other !is CheckersStaticState)
                 return false
-            return player == other.player && other.game.board == game.board //not check move because root state dont have move (and it may be equals to another state
+            return other.game == game //not check move because root state dont have move (and it may be equals to another state
         }
 
         override fun hashCode(): Int {
-            var result = game.board.hashCode()
-            result = 31 * result + player.hashCode()
-            result = 31 * result + (move?.hashCode() ?: 0)
-            return result
+            return game.hashCode()
         }
     }
 
