@@ -44,7 +44,7 @@ dependencies {
 
 
     testCompile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
-    testCompile "seekdasky.sok:sok-js:0.22.0"
+//    testCompile "seekdasky.sok:sok-js:0.22.0"
 }
 
 kotlinFrontend {
@@ -53,8 +53,7 @@ kotlinFrontend {
         dependency('react', react_version)
         dependency('react-dom', react_version)
 
-
-        dependency('@logrally/kotlin-react-ring-ui')
+//        dependency('@logrally/kotlin-react-ring-ui')
 
         dependency('styled-components', '4')
         dependency('inline-style-prefixer', '^5.1.0')

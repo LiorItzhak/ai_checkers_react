@@ -35,8 +35,8 @@ class CheckersGame(private val firstPlayer: Player = Player.Player1) : BoardGame
         board.clear()
 
         cartesianFor(BOARD_SIZE / 2 - 1, (BOARD_SIZE + 1) / 2) { line, i ->
-            board[line, 2 * i + line % 2] = RegularPiece(Player.Player2)
-            board[BOARD_SIZE - 1 - line, 2 * i + (BOARD_SIZE - 1 - line) % 2] = RegularPiece(Player.Player1)
+            board[line, 2 * i + (line + 1) % 2] = RegularPiece(Player.Player2)
+            board[BOARD_SIZE - 1 - line, 2 * i + (BOARD_SIZE - line) % 2] = RegularPiece(Player.Player1)
         }
     }
 

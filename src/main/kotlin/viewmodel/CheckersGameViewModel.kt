@@ -279,7 +279,7 @@ fun CheckersBoard.toBoardUi(): Board {
                     is Queen -> if (piece.owner == BoardGame.Player.Player1) URL_QUEEN_PLAYER1 else URL_QUEEN_PLAYER2
                     else -> null
                 },
-                colorHtml = if ((row + col) % 2 == 0) BLACK_COLOR else WHITE_COLOR
+                colorHtml = if ((row + col) % 2 == 1) BLACK_COLOR else WHITE_COLOR
         )
     }
     return Board(this.size, squares)
