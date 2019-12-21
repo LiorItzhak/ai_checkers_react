@@ -37,9 +37,10 @@ class AlphaBetaAlgo<T>: GameTreeAlgo<T> {
             }
         }
 
-        if (height == 0 || node.isTerminal)
-            return null to ((color * node.getScore()) +
-                    sign(/*color */node.getScore()) * height.toDouble()/(maxDepth+1))
+        if (height == 0 || node.isTerminal) {
+            val score = node.getScore()
+            return null to color * (score + sign(score) * height.toDouble() / (maxDepth + 1))
+        }
 
         val deltas = node.getChildrenWithDeltas()
         var bestPair = deltas[0].second to alpha
