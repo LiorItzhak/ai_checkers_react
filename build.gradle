@@ -68,7 +68,8 @@ kotlinFrontend {
     webpackBundle {
         bundleName = 'main'
         contentPath = file("$projectDir/static")
-
+        //gradlwhost = "192.168.0.109"
+       // port = 8088
         // proxyUrl = 'http://localhost:8080'
     }
 }

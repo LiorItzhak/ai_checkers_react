@@ -27,7 +27,7 @@ abstract class Player<T : BoardGame<M, out Board<out Piece>>, M : Move>(val name
             // turnJob?.cancel()//dont need - shared context//TODO check this
             console.info("timeout $player--${name}----${cancelE.message}-")
         } catch (e: Throwable) {
-            console.info("ERROR-$player--${e.message}-")
+            console.info("ERROR-$player--${e.message}-${e.cause}")
         } finally {
             //if the turn is canceled return the committed backup move
             return move

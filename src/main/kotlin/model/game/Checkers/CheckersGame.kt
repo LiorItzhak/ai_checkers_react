@@ -9,7 +9,8 @@ import model.game.Checkers.pieces.Queen
 
 class CheckersGame(private val firstPlayer: Player = Player.Player1) : BoardGame<CheckersMove, CheckersBoard>(CheckersBoard(BOARD_SIZE)) {
 
-    private var drawStepCounter = 0
+    var drawStepCounter = 0
+    private set
     private var movedCached = false
 
     //TODO cache all possible moves (until apply move called)
@@ -129,6 +130,7 @@ class CheckersGame(private val firstPlayer: Player = Player.Player1) : BoardGame
 
         if (drawStepCounter>=15) return 0.0
 
+
         var score1 = 0.0
         var score2 = 0.0
         cartesianFor(BOARD_SIZE, BOARD_SIZE) { pos ->
@@ -153,7 +155,7 @@ class CheckersGame(private val firstPlayer: Player = Player.Player1) : BoardGame
     }
 
     override fun equals(other: Any?): Boolean {
-        return board == (other as? CheckersGame)?.board && currentPlayer == other.currentPlayer
+        return board == (other as? CheckersGame)?.board && currentPlayer == other.currentPlayer && drawStepCounter == other.drawStepCounter
     }
 
     private var possibleMoves: List<CheckersMove>? = null

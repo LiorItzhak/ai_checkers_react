@@ -1,11 +1,10 @@
 package model.algorithm
 
 import kotlinx.coroutines.delay
-import kotlin.math.ln
-import kotlin.math.roundToInt
-import kotlin.math.sqrt
+import kotlin.math.*
 
 
+@Suppress("UNCHECKED_CAST")
 class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.414,
                                             private val usePreviousSearchInfo: Boolean = true,
                                             private val returnWhenOnlyOneOptionAvailable: Boolean = false,
@@ -13,17 +12,15 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
     suspend fun search(rootState: T, maxIterations: Int? = null, maxDepth: Int? = null, onChooseChanged: ((T) -> Unit)? = null): T {
         numOfUsedCachedStates = 0//debug
         val rootNode = cachedChosenNode?.children?.firstOrNull { node -> node.state == rootState } ?: Node(rootState)
-        val n = rootNode.numOfVisits ; val d = rootNode.depth
+        rootNode.parent = null
+        val n = rootNode.numOfVisits;
+        val d = rootNode.depth
         var chosenNode: Node<T>? = null
         try {
-            if (returnWhenOnlyOneOptionAvailable) {
-                rootNode.state.getChildren().let {
-                    if (it.size == 1) {
-                        chosenNode = rootNode.children?.get(0)
-                        return chosenNode!!.state
-                    }
-                }
-            }
+            if (returnWhenOnlyOneOptionAvailable||!usePreviousSearchInfo)
+                rootNode.state.getChildren()
+                        .let { if (it.size == 1) rootNode.children?.get(0)?.let {c-> chosenNode = c; return c.state }}
+
             while (maxIterations?.let { rootNode.numOfVisits - n < it } != false) {
                 searchIteration(rootNode, maxDepth?.plus(rootNode.depth))
                 rootNode.children?.maxBy { it.numOfVisits }?.let {
@@ -41,7 +38,15 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
         } finally {
             statesCache?.clear()
             cachedChosenNode = if (usePreviousSearchInfo) chosenNode?.apply { parent = null } else null
+            val mean = chosenNode?.let { it.weight / it.numOfVisits } ?: 0.0
+            val variance = chosenNode?.let { it.weights.map { w -> (w - mean).pow(2) }.sum() / (it.weights.size-1) } ?: 0.0
+            val std = sqrt(variance)
+            val sd = chosenNode?.let { std / sqrt(it.numOfVisits.toDouble()) } ?: 0.0
+           // console.log("finally: ${chosenNode?.weights?.map { w -> (w - mean).pow(2) }?.sum()}  // ${chosenNode?.weights?.size}")
+           // console.log("finally: ${chosenNode?.weights}")
+
             console.info("finally: ${chosenNode!!.estimate()}% | ${chosenNode!!.numOfVisits}/${rootNode.numOfVisits} | visits from previous search= $n,depth=$d |used cached state =$numOfUsedCachedStates")
+            console.info("finally: mean= ${(mean*1000).roundToLong()/1000.0} +- ${(2 * sd*1000).roundToLong()/1000.0} with 95% confidence, sample std ${(std*1000).roundToLong()/1000.0}")
         }
         return chosenNode!!.state
     }
@@ -54,7 +59,8 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
         }
     }
 
-    private fun Node<*>.estimate() = (((weight / numOfVisits)) * 100/*100/2*/).roundToInt()
+    private fun Node<*>.estimate() = ((weight / numOfVisits) * 100).roundToInt()
+
     private fun searchIteration(rootNode: Node<T>, maxDepth: Int? = null) {
 
         //Selection
@@ -93,35 +99,39 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
         val isLeaf: Boolean
             get() = children?.isEmpty() != false //null or true
 
+        val weights :MutableList<Double> by lazy { mutableListOf<Double>() }
+
 
         fun expand() {
             if (children == null) {
-
-                children = (statesCache?.let { numOfUsedCachedStates++;it.getOrElse(state) { numOfUsedCachedStates--;null } }
-                        ?: state.getChildren()).map { Node(it as T, this) }
+                children = (statesCache?.let { numOfUsedCachedStates++;it.getOrElse(state) { numOfUsedCachedStates--;null } } ?: state.getChildren()).map { Node(it as T, this) }
                 statesCache?.remove(state)
             }
         }
 
-        fun rollOut(maxDepth: Int? = null): Double {
+        fun rollOut(maxDepth: Int? = null): StaticState {
             var endState = this.state
             var i = 0
             while (maxDepth?.let { depth + i++ < it } != false/*null or true*/ && !endState.isTerminal) {
-
                 val children = (statesCache?.let { numOfUsedCachedStates++; it.getOrElse(endState) { numOfUsedCachedStates--;null } })
                         ?: endState.getChildren().apply { statesCache?.set(endState, this) }
                 endState = children.random() as T
             }
-            return if (endState.perspective == parent?.state?.perspective ?: -1) endState.evaluate() else -endState.evaluate()
+            return endState
         }
 
-        fun backpropagation(weight: Double) {
-            numOfVisits++
-            this.weight += weight
-            var ancestor = parent
+        fun backpropagation(state: StaticState) {
+            var ancestor: Node<T>? = this
+            val evaluations = mutableMapOf<Int, Double>()
             while (ancestor != null) {
                 ancestor.numOfVisits++
-                ancestor.weight += if (state.perspective == ancestor.state.perspective) weight else -weight
+                val ancestorParent = ancestor.parent
+                if(ancestorParent!=null){
+                    val w = evaluations.getOrPut(ancestorParent.state.perspective) { state.evaluate(ancestorParent.state.perspective) }
+                    ancestor.weight += w
+                    if(ancestorParent.parent==null)
+                        ancestor.weights.add(w)
+                }
                 ancestor = ancestor.parent
             }
         }
@@ -135,7 +145,7 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
 interface StaticState {
     val isTerminal: Boolean
 
-    fun evaluate(): Double //normalized -1 to 1
+    fun evaluate(perspective: Int): Double //0 to 1
 
     fun getChildren(): List<StaticState>
 
