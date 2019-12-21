@@ -45,7 +45,7 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
            // console.log("finally: ${chosenNode?.weights?.map { w -> (w - mean).pow(2) }?.sum()}  // ${chosenNode?.weights?.size}")
            // console.log("finally: ${chosenNode?.weights}")
 
-            console.info("finally: ${chosenNode!!.estimate()}% | ${chosenNode!!.numOfVisits}/${rootNode.numOfVisits} | visits from previous search= $n,depth=$d |used cached state =$numOfUsedCachedStates")
+            console.info("finally: value= ${chosenNode?.estimate()} | ${chosenNode!!.numOfVisits}/${rootNode.numOfVisits} | visits from previous search= $n,depth=$d |used cached state =$numOfUsedCachedStates")
             console.info("finally: mean= ${(mean*1000).roundToLong()/1000.0} +- ${(2 * sd*1000).roundToLong()/1000.0} with 95% confidence, sample std ${(std*1000).roundToLong()/1000.0}")
         }
         return chosenNode!!.state
@@ -59,7 +59,7 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
         }
     }
 
-    private fun Node<*>.estimate() = ((weight / numOfVisits) * 100).roundToInt()
+    private fun Node<*>.estimate() = ((weight / numOfVisits) * 1000).roundToLong() /1000.0
 
     private fun searchIteration(rootNode: Node<T>, maxDepth: Int? = null) {
 

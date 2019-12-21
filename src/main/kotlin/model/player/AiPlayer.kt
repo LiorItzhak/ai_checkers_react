@@ -100,20 +100,28 @@ class CheckersMctsAiPlayer(private val maxIterations: Int? = null, private val m
 
         private fun CheckersGame.getScoreMcts(player: BoardGame.Player): Double {
           //  fun getDistFromEnd(pos: Pair<Int, Int>, owner: BoardGame.Player): Double = (if (owner == BoardGame.Player.Player2) pos.first else CheckersGame.BOARD_SIZE - 1 - pos.first).toDouble() / CheckersGame.BOARD_SIZE
-            if (drawStepCounter >= 15) return 0.5//draw
-            if(game.isEnded()) return if(player == currentPlayer) 0.0 else 1.0
+            if (drawStepCounter >= 15) return 0.0//0.5//draw
 
-            var score = 50.0
-            cartesianFor(CheckersGame.BOARD_SIZE, CheckersGame.BOARD_SIZE) { pos ->
-                board[pos]?.let {
-                    when (it) {
-                        is RegularPiece -> if (it.owner == player) score +=1 else score -= 1
-                        is King -> if (it.owner == player) score += 3 else score-=4
-                        is Queen -> if (it.owner == player) score += 5 else score -=7
+            fun toolsScore(player: BoardGame.Player):Double{
+                var score = 0.0
+                cartesianFor(CheckersGame.BOARD_SIZE, CheckersGame.BOARD_SIZE) { pos ->
+                    board[pos]?.let {
+                        when (it) {
+                            is RegularPiece -> if (it.owner == player) score += 3 else score -= 3
+                            is King -> if (it.owner == player) score += 5 else score-=5
+                            is Queen -> if (it.owner == player) score += 10 else score -=10
+                        }
                     }
                 }
+                return score/100.0
             }
-            return score/100.0 //normalize 0 to 1.0
+
+            if(game.isEnded()) {
+                val winLoseScore = if(player == currentPlayer) -1.0 else 1.0 //0 to 1
+                return  winLoseScore  //*0.8  +toolsScore(player)*0.2
+            }
+
+            return  toolsScore(player)
         }
     }
 
