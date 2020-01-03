@@ -9,14 +9,12 @@ import kotlin.math.*
  *
  * @param ucb1Alpha is used to change the UCB1 constance
  * @param usePreviousSearchInfo used to enable the search use previous calculations (previous search) as a base for the new one
- * @param returnWhenOnlyOneOptionAvailable use to force the search to stop immediately if only one action available,
  * use it only if [usePreviousSearchInfo] enabled (true)
  * @param cacheStates uses to enable the search to cache states (may require a lot of memory)
  * @param logger is a function that call when a log is available.
  */
 class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.414,
                                             private val usePreviousSearchInfo: Boolean = true,
-                                            private val returnWhenOnlyOneOptionAvailable: Boolean = false,
                                             cacheStates: Boolean = true,
                                             private val logger: ((String) -> Unit)? = null) {
 
@@ -38,17 +36,16 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
             cachedNodes = cachedNodes.flatMap { node -> node.children.orEmpty() }
         }
         //initialize the root node, if cacheStates take from it from the previous tree, else create a new node
-        val rootNode = cachedNodes?.firstOrNull { node -> node.state == rootState }?.apply { parent = null } ?: Node(rootState)
+        val rootNode = cachedNodes?.firstOrNull { it.state == rootState }?.apply { parent = null } ?: Node(rootState)
         //initialize the number of visits and the depth, uses for update the previous cached calculations if the cacheStates enable
         val numOfVisitsAtStart = rootNode.numOfVisits
-        var chosenNode: Node<T>? = null
-        try {
-            if (returnWhenOnlyOneOptionAvailable || !usePreviousSearchInfo) {
-                //if only one next children available return it without any calculation
-                rootNode.state.getChildren()
-                        .let { if (it.size == 1) rootNode.children?.get(0)?.let { c -> chosenNode = c; return c.state } }
-            }
 
+        var chosenNode: Node<T>? = null
+        if (!usePreviousSearchInfo) {
+            //if only one next children available return it without any calculation
+            rootNode.state.getChildren().let { if (it.size == 1) rootNode.children?.get(0)?.let { c -> chosenNode = c; return c.state } }
+        }
+        try {
             //while the maxIterations haven't reached, do another iteration
             while (maxIterations?.let { rootNode.numOfVisits - numOfVisitsAtStart < it } != false) {
                 searchIteration(rootNode, maxDepth?.plus(rootNode.depth))
@@ -62,16 +59,15 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
                     }
                 }
                 //only for single threaded environments - allows context switch//
-                if (rootNode.numOfVisits % 150 == 0) {
-                    delay(1); logger?.invoke("mcts weight= ${chosenNode!!.estimate()} | ${chosenNode!!.numOfVisits}/${rootNode.numOfVisits}")
-                }
+                if (rootNode.numOfVisits % 150 == 0)  delay(1)
             }
         } finally {
-            //clear cache and log the final results to the console
+            //clear states cache
             statesCache?.clear()
+            //cache the calculated nodes for the next search (only the chosen node's subtree)
             cachedChosenNode = if (usePreviousSearchInfo) chosenNode?.apply { parent = null } else null
             //calculate the final result statistics
-            logger?.let {l->
+            logger?.let { l ->
                 val mean = chosenNode?.let { it.weight / it.numOfVisits } ?: 0.0
                 val variance = chosenNode?.let { it.weights.map { w -> (w - mean).pow(2) }.sum() / (it.weights.size - 1) }
                         ?: 0.0
@@ -149,7 +145,7 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
         }
 
         fun rollOut(maxDepth: Int? = null): StaticState {
-            var endState  :StaticState = this.state
+            var endState: StaticState = this.state
             var i = 0
             while (maxDepth?.let { depth + i++ < it } != false/*null or true*/ && !endState.isTerminal) {
                 val children = (statesCache?.let { numOfUsedCachedStates++; it.getOrElse(endState) { numOfUsedCachedStates--;null } })

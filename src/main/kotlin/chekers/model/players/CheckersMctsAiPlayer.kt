@@ -38,7 +38,7 @@ class CheckersMctsAiPlayer(private val maxIterations: Int? = null, private val m
         override fun evaluate(perspective: Int): Double = when (perspective) {
             1 -> game.getScoreMcts(BoardGame.Player.Player1)
             2 -> game.getScoreMcts(BoardGame.Player.Player2)
-            else -> throw IllegalStateException("Player perspective evaluation $perspective dont implemented")
+            else -> throw IllegalArgumentException("Player perspective evaluation $perspective dont implemented")
         }
 
 
@@ -96,7 +96,7 @@ class CheckersMctsAiPlayer(private val maxIterations: Int? = null, private val m
                         }
                     }
                 }
-                return score / board.size* board.size*1.5
+                return score / (board.size* board.size*1.5)
             }
             return toolsScore(player)
         }
