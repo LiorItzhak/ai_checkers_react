@@ -15,14 +15,8 @@ abstract class BoardGame<M: Move,B : Board<out Piece>>(open val board: B) {
     //throw exception if no move available
     abstract fun getRandomMove(player: Player): M
 
-    //throw exception if no move available
-    @Deprecated("use newer \"possibleMoves()\" which uses cache and doesn't require player as input")
-    abstract fun getAllPossibleMoves(player: Player): List<M>
-
     abstract fun possibleMoves(): List<M>
 
-    @Deprecated("use newer \"isEnded()\" which uses cache and doesn't require player as input")
-    abstract fun isGameEnded(playerTurn: Player): Boolean
 
     abstract fun isEnded(): Boolean
 

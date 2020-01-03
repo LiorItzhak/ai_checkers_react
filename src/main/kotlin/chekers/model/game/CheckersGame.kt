@@ -58,7 +58,7 @@ open class CheckersGame(protected val firstPlayer: Player = Player.Player1,board
         when (move) {
             is SingleMove -> {
                 //update queen counter to catch draws
-                if (board[move.start] is Queen && !move.ate) drawStepCounter++ else drawStepCounter = 0
+                if (board[move.start] !is RegularPiece && !move.ate) drawStepCounter++ else drawStepCounter = 0
                 finalPos = move.end
                 doMove(move)
             }
@@ -81,7 +81,7 @@ open class CheckersGame(protected val firstPlayer: Player = Player.Player1,board
 
     override fun getRandomMove(player: Player): CheckersMove = possibleMoves().random()
 
-    override fun getAllPossibleMoves(player: Player): List<CheckersMove> {
+    private fun getAllPossibleMoves(player: Player): List<CheckersMove> {
         val moves = mutableListOf<SingleMove>()
         cartesianFor(board.size, board.size) { row, col ->
             board[row, col]?.let { p ->
@@ -120,8 +120,6 @@ open class CheckersGame(protected val firstPlayer: Player = Player.Player1,board
         } else moves
     }
 
-    override fun isGameEnded(playerTurn: Player): Boolean = (drawStepCounter >= 15) || possibleMoves().isEmpty()
-
     override fun getScore(player: Player): Double {
         fun getDistFromEnd(pos: Pair<Int, Int>, owner: Player): Double {
             return if (owner==Player.Player2)
@@ -131,7 +129,7 @@ open class CheckersGame(protected val firstPlayer: Player = Player.Player1,board
         }
 
         if (drawStepCounter>=15) return 0.0
-        //TODO -
+
         var score1 = 0.0 ;var score2 = 0.0
         cartesianFor(board.size, board.size) { pos ->
             board[pos]?.let {
@@ -169,7 +167,7 @@ open class CheckersGame(protected val firstPlayer: Player = Player.Player1,board
     }
 
     override fun isEnded(): Boolean {
-        return isGameEnded(currentPlayer)
+        return (drawStepCounter >= 15) || possibleMoves().isEmpty()
     }
 
 }

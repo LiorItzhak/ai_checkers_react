@@ -114,8 +114,8 @@ class CheckersGameViewModel(
         console.info("turn started : ${turn.name}")
         val board = board.value ?: return
         console.info("turn started mark moves: ${turn.name}")
-        //enable click on posible moves
-        val allClickableSquares = game.getAllPossibleMoves(turn).flatMap { move ->
+        //enable click on possible moves
+        val allClickableSquares = game.possibleMoves().flatMap { move ->
             when (move) {
                 is SingleMove -> listOf(move.end, move.start)
                 is MultiMove -> move.moves.map { it.end }.toMutableList().apply { add(move.moves[0].start) }
@@ -192,7 +192,7 @@ class CheckersGameViewModel(
             }
         } else {
             //get relevant positions (for highlight)
-            var allHighlightSquares = game.getAllPossibleMoves(player).filter {
+            var allHighlightSquares = game.possibleMoves().filter {
                 it is MultiMove && when (move.move) {
                     is SingleMove -> it.moves[0] == move.move
                     is MultiMove -> it.moves.size >= move.move.moves.size && it.moves.slice(0..move.move.moves.lastIndex) == move.move.moves

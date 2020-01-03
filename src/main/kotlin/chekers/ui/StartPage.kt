@@ -84,6 +84,7 @@ fun RBuilder.playerTypeSelect(id: String) = select {
     attrs.id = id
     option { +"Alpha-Beta" }
     option { +"Mcts" }
+    option { +"Mcts Limited Depth(25)" }
     option { +"Human" }
 }
 
@@ -95,7 +96,8 @@ fun RBuilder.gameTypeSelect(id: String) = select {
 
 fun getPlayer(str: String): Player<CheckersGame, CheckersMove> = when (str) {
     "Alpha-Beta" -> CheckersAiPlayer()
-    "Mcts" -> CheckersMctsAiPlayer(maxDepth = 25)
+    "Mcts" -> CheckersMctsAiPlayer(maxDepth = null)
+    "Mcts Limited Depth(25)" -> CheckersMctsAiPlayer(maxDepth = 25)
     "Human" -> CheckersHumanPlayer()
     else -> throw UnsupportedOperationException("player of type $str")
 }

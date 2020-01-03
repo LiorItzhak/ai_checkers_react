@@ -8,8 +8,7 @@ import chekers.model.game.CheckersGame
 import chekers.model.game.CheckersMove
 import boradGames.players.AiPlayer
 
-class CheckersAiPlayer(algo: GameTreeAlgo<CheckersMove>? = null)
-    : AiPlayer<CheckersGame, CheckersMove>("AlphaBetaPlayer") {
+class CheckersAiPlayer(algo: GameTreeAlgo<CheckersMove>? = null) : AiPlayer<CheckersGame, CheckersMove>("AlphaBetaPlayer") {
     private val algo = algo ?: AlphaBetaAlgo()
 
     //TODO add depth limit

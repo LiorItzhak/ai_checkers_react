@@ -17,7 +17,7 @@ class CheckersHumanPlayer(name: String? = null) : HumanPlayer<CheckersGame, Chec
         when {
             previousPart == null || previousPart.data is Unit -> {
                 //the human has clicked on the tool that he want to pick up
-                humanMove = if (game.getAllPossibleMoves(player).any { it.isStartWith(clickCoordinate) }) {
+                humanMove = if (game.possibleMoves().any { it.isStartWith(clickCoordinate) }) {
                     console.info("debug: human pickup tool: $clickCoordinate ")
                     HumanMove(move = null, waitForAnotherClick = true, data = clickCoordinate)
                 } else {
@@ -30,7 +30,7 @@ class CheckersHumanPlayer(name: String? = null) : HumanPlayer<CheckersGame, Chec
                 //the human has completed the first part of the move - create a single move
                 @Suppress("UNCHECKED_CAST")
                 val previousClick: Pair<Int, Int> = previousPart.data as Pair<Int, Int>
-                val move = game.getAllPossibleMoves(player)
+                val move = game.possibleMoves()
                         .firstOrNull {
                             when (val singleMove = if (it is MultiMove && it.moves.isNotEmpty()) it.moves[0] else it) {
                                 is SingleMove -> singleMove.start == previousClick && singleMove.end == clickCoordinate
@@ -49,15 +49,15 @@ class CheckersHumanPlayer(name: String? = null) : HumanPlayer<CheckersGame, Chec
                 //user collected a multimove, expand the multimove
                 val previousMove = previousPart.move ?: throw RuntimeException("bug:previous move cant be null")
                 //get a valid move that start with the previous part and continue with the give coordinates
-                val move = game.getAllPossibleMoves(player)
+                val move = game.possibleMoves()
                         .filter { it is MultiMove && it.isStartWith(previousMove) }
                         .firstOrNull { it is MultiMove && it.isContinueWith(previousMove, clickCoordinate) } as? MultiMove
 
                 humanMove = if (move == null) {
                     //illegal move, reset to first pos
                     console.info("human player :cant find a move that start with $previousMove and continue with $clickCoordinate")
-                    console.info("start with options= ${game.getAllPossibleMoves(player).filter { it is MultiMove && it.isStartWith(previousMove) }}")
-                    console.info("continue with options= ${game.getAllPossibleMoves(player).filter { it is MultiMove && it.isContinueWith(previousMove, clickCoordinate) }}")
+                    console.info("start with options= ${game.possibleMoves().filter { it is MultiMove && it.isStartWith(previousMove) }}")
+                    console.info("continue with options= ${game.possibleMoves().filter { it is MultiMove && it.isContinueWith(previousMove, clickCoordinate) }}")
                     resetMove()
 
                 } else {
