@@ -17,7 +17,6 @@ import chekers.ui.Board
 import chekers.ui.Square
 import kotlin.browser.window
 
-//todo
 const val URL_REG_PLAYER1 = "img/red-pawn.png"
 const val URL_REG_PLAYER2 = "img/blue-pawn.png"
 const val URL_QUEEN_PLAYER1 = "img/red-king.png"
@@ -80,7 +79,7 @@ class CheckersGameViewModel(
 
 
     init {
-        //register to gameController events, change the chekers.ui properly
+        //register to gameController events, change the checkers.ui properly
         (player1 as? CheckersHumanPlayer)?.addListener(this)
         (player2 as? CheckersHumanPlayer)?.addListener(this)
 
@@ -90,11 +89,11 @@ class CheckersGameViewModel(
     override fun onMoveDecided(move: Move, board: CheckersBoard) {
         console.info("debug: onMoveDecided")
 
-        val boardT = this@CheckersGameViewModel.board.value ?: return
+        val boardT = this@CheckersGameViewModel.board.value
         val moveSquares = when (move) {
             is SingleMove -> listOf(move.end)
             is MultiMove -> move.moves.filterIndexed { inx, _ -> inx > 0 }.map { it.end }
-            else -> TODO()
+            else ->  throw IllegalArgumentException("dont know how to handle this move $move")
         }
 
         val b = boardT.mapIndexed { s, row, col ->
@@ -112,14 +111,14 @@ class CheckersGameViewModel(
 
     override fun onTurnStarted(game: CheckersGame, turn: BoardGame.Player) {
         console.info("turn started : ${turn.name}")
-        val board = board.value ?: return
+        val board = board.value
         console.info("turn started mark moves: ${turn.name}")
         //enable click on possible moves
         val allClickableSquares = game.possibleMoves().flatMap { move ->
             when (move) {
                 is SingleMove -> listOf(move.end, move.start)
                 is MultiMove -> move.moves.map { it.end }.toMutableList().apply { add(move.moves[0].start) }
-                else -> TODO()
+                else -> throw IllegalArgumentException("dont know how to handle this move $move")
             }
         }
         this@CheckersGameViewModel.board.value = board
@@ -129,7 +128,7 @@ class CheckersGameViewModel(
     override fun onTurnEnded(game: CheckersGame, turn: BoardGame.Player) {
         console.info("turn ended : ${turn.name}")
         //disable board clicks
-        val board = board.value?.map { it.copy(isClickable = false) } ?: return
+        val board = board.value.map { it.copy(isClickable = false) }
         this@CheckersGameViewModel.board.value = board
     }
 
@@ -211,6 +210,7 @@ class CheckersGameViewModel(
             if (move.move == null && move.data is Pair<*, *>) {
                 //human have pick up a tool
                 //mark coordinates as selected
+                @Suppress("UNCHECKED_CAST")
                 val coordinates = move.data as Pair<Int, Int>
                 b = board.value.mapIndexed { s, row, col ->
                     if (row to col == coordinates) {

@@ -9,7 +9,7 @@ import chekers.model.game.CheckersMove
 import chekers.model.game.InternationalCheckers
 import boradGames.players.*
 import chekers.viewmodel.CheckersGameViewModel
-import chekers.model.players.CheckersAiPlayer
+import chekers.model.players.CheckersAlphaBetaPlayer
 import chekers.model.players.CheckersMctsAiPlayer
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -95,7 +95,7 @@ fun RBuilder.gameTypeSelect(id: String) = select {
 }
 
 fun getPlayer(str: String): Player<CheckersGame, CheckersMove> = when (str) {
-    "Alpha-Beta" -> CheckersAiPlayer()
+    "Alpha-Beta" -> CheckersAlphaBetaPlayer()
     "Mcts" -> CheckersMctsAiPlayer(maxDepth = null)
     "Mcts Limited Depth(25)" -> CheckersMctsAiPlayer(maxDepth = 25)
     "Human" -> CheckersHumanPlayer()

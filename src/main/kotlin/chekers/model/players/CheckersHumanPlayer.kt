@@ -1,15 +1,11 @@
 package chekers.model.players
-
 import chekers.model.game.CheckersMove
-
-
 import chekers.model.game.CheckersGame
 import chekers.model.game.MultiMove
 import chekers.model.game.SingleMove
 import boradGames.players.HumanPlayer
 
-class CheckersHumanPlayer(name: String? = null) : HumanPlayer<CheckersGame, CheckersMove, HumanPlayer.HumanMove<CheckersMove>>(name
-        ?: "human Player") {
+class CheckersHumanPlayer(name: String? = null) : HumanPlayer<CheckersGame, CheckersMove, HumanPlayer.HumanMove<CheckersMove>>(name ?: "Human Player") {
 
     override suspend fun humanMove(game: CheckersGame, clickCoordinate: Pair<Int, Int>, previousPart: HumanMove<CheckersMove>?): HumanMove<CheckersMove> {
         console.info("debug: human clicked : $clickCoordinate ")
@@ -34,7 +30,7 @@ class CheckersHumanPlayer(name: String? = null) : HumanPlayer<CheckersGame, Chec
                         .firstOrNull {
                             when (val singleMove = if (it is MultiMove && it.moves.isNotEmpty()) it.moves[0] else it) {
                                 is SingleMove -> singleMove.start == previousClick && singleMove.end == clickCoordinate
-                                else -> TODO("human player dont know how to handle this move $singleMove")
+                                else -> throw IllegalArgumentException("human player dont know how to handle this move $singleMove")
                             }
                         }
 
@@ -42,7 +38,7 @@ class CheckersHumanPlayer(name: String? = null) : HumanPlayer<CheckersGame, Chec
                     null -> resetMove()//illegal move, reset to first pos
                     is SingleMove -> HumanMove(move = move)
                     is MultiMove -> HumanMove(move = move.moves[0], waitForAnotherClick = true)
-                    else -> TODO("human player dont know how to handle this move $move")
+                    else ->  throw IllegalArgumentException("human player dont know how to handle this move $move")
                 }
             }
             else -> {
@@ -86,7 +82,7 @@ class CheckersHumanPlayer(name: String? = null) : HumanPlayer<CheckersGame, Chec
         return when (this) {
             is SingleMove -> start == firstCoordinate
             is MultiMove -> moves[0].start == firstCoordinate
-            else -> TODO("human player dont know how to handle this move $this")
+            else ->  throw IllegalArgumentException("human player dont know how to handle this move $this")
         }
     }
 
@@ -94,7 +90,7 @@ class CheckersHumanPlayer(name: String? = null) : HumanPlayer<CheckersGame, Chec
         return when (checkersMove) {
             is SingleMove -> moves[0] == checkersMove
             is MultiMove -> moves.size >= checkersMove.moves.size && moves.slice(0..checkersMove.moves.lastIndex) == checkersMove.moves
-            else -> TODO("human player dont know how to handle this move $checkersMove")
+            else ->  throw IllegalArgumentException("human player dont know how to handle this move $checkersMove")
         }
     }
 
@@ -102,7 +98,7 @@ class CheckersHumanPlayer(name: String? = null) : HumanPlayer<CheckersGame, Chec
         return when (checkersMove) {
             is SingleMove -> moves[1].end == nextCoordinate
             is MultiMove -> moves.size >checkersMove.moves.size && moves[checkersMove.moves.lastIndex + 1].end == nextCoordinate
-            else -> TODO("human player dont know how to handle this move $checkersMove")
+            else ->  throw IllegalArgumentException("human player dont know how to handle this move $checkersMove")
         }
     }
 

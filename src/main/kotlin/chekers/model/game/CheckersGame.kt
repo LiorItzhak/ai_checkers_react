@@ -5,7 +5,7 @@ import chekers.model.game.board.CheckersBoard
 import chekers.model.game.board.pieces.King
 import chekers.model.game.board.pieces.RegularPiece
 import boradGames.game.board.BoardGame
-import chekers.model.game.board.pieces.HalfKing
+import chekers.model.game.board.pieces.RegularPieceEatBackward
 import chekers.model.game.board.pieces.Queen
 
 
@@ -95,7 +95,7 @@ open class CheckersGame(protected val firstPlayer: Player = Player.Player1,board
                         val eatenP = board.remove(startMove.atePos!!)// save eaten piece
                         val original = board.remove(startMove.start)!!
                         //change piece to king to enable eating backwards
-                        board[startMove.end] = if (original is RegularPiece) HalfKing(original.owner) else original
+                        board[startMove.end] = if (original is RegularPiece) RegularPieceEatBackward(original.owner) else original
 
                         val nextMoves = getAllPossibleMoves(player)
                                 .filter { it.ate }

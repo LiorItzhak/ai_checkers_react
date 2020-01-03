@@ -28,11 +28,9 @@ class AlphaBetaAlgo<T>: GameTreeAlgo<T> {
         //only for single thread environment - allows context switch
         if (i++ % 3000 == 0) {
             delay(1)
-//            console.info("alpha $i")
         }
         cache[node]?.let { (result, d) ->
             if (d>=height) {
-//                console.log("found in cache: $result with depth: $d")
                 return result
             }
         }

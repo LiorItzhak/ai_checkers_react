@@ -126,8 +126,7 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
     private val statesCache: MutableMap<StaticState, List<StaticState>>? = if (cacheStates) mutableMapOf() else null
     private var numOfUsedCachedStates = 0
 
-    @Suppress("UNCHECKED_CAST")
-    inner class Node<T : StaticState>(val state: T, var parent: Node<T>? = null) {
+    private inner class Node<T : StaticState>(val state: T, var parent: Node<T>? = null) {
         val depth: Int = (parent?.depth ?: -1) + 1
         var numOfVisits: Int = 0
             private set
@@ -140,7 +139,7 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
 
         val weights: MutableList<Double> by lazy { mutableListOf<Double>() }
 
-
+        @Suppress("UNCHECKED_CAST")
         fun expand() {
             if (children == null) {
                 children = (statesCache?.let { numOfUsedCachedStates++;it.getOrElse(state) { numOfUsedCachedStates--;null } }
@@ -150,12 +149,12 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
         }
 
         fun rollOut(maxDepth: Int? = null): StaticState {
-            var endState = this.state
+            var endState  :StaticState = this.state
             var i = 0
             while (maxDepth?.let { depth + i++ < it } != false/*null or true*/ && !endState.isTerminal) {
                 val children = (statesCache?.let { numOfUsedCachedStates++; it.getOrElse(endState) { numOfUsedCachedStates--;null } })
                         ?: endState.getChildren().apply { statesCache?.set(endState, this) }
-                endState = children.random() as T
+                endState = children.random()
             }
             return endState
         }
@@ -182,12 +181,14 @@ class MonteCarloTreeSearch<T : StaticState>(private val ucb1Alpha: Double = 1.41
 }
 
 
+/**
+ * This interface
+ */
 interface StaticState {
-
     /**
      * @return true if this state has no children
      * note that you can simply just return if [getChildren] is empty
-     * if you can determine if a state is terminal without calculating its children, this function will improve the performance
+     * This value will improve the performance if you can determine if a state is terminal without calculating its children
      */
     val isTerminal: Boolean
 

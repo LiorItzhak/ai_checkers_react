@@ -1,5 +1,4 @@
 package chekersApp
-
 import react.dom.*
 import chekers.ui.startPage
 import kotlin.browser.document
